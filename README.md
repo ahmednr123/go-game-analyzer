@@ -15,3 +15,5 @@ Todo:
 - Add functionality to switch between multiple engine elo for finding the best move only
 - Add a loader to wait for KataGo to respond
 - Display error and stop rendering if any error is prompted
+- Add multiple platform build solution in CMakeLists.txt
+- Use Github workflows to generate multiple releases for different platforms (Windows, Linux and MacOS)
