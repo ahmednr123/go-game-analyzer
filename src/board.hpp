@@ -2,11 +2,12 @@
 #define GO_BOARD_H
 
 #include "base.hpp"
-#include "undo.hpp"
+#include "state.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3_ttf/SDL_textengine.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <memory>
 
 class GoBoard {
 private:
@@ -19,7 +20,7 @@ private:
 
     bool auto_switch_flag = true;
     GoTurn turn = GoTurn::BLACK;
-    GoBoardState* state;
+    std::unique_ptr<GoBoardState> state;
 
     GoBoardInfo board;
 
@@ -32,8 +33,6 @@ public:
     void render();
     void handleEvent(SDL_Event* event);
     void renderUI();
-
-    ~GoBoard();
 };
 
 #endif

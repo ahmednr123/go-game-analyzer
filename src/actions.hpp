@@ -7,17 +7,20 @@
 
 enum class GoBoardActionType {
     ADD_STONE,
-    REMOVE_STONES
+    CAPTURE_STONES
 };
 
 struct AddStone {
     GoStone stone;
 };
 
-struct RemoveStones {
-    std::vector<GoStone> stones;
+struct CaptureStones {
+    GoStone capturing_stone;
+    std::vector<GoStone> removed_stones;
 };
 
-using GoBoardAction = std::variant<RemoveStones, AddStone>;
+struct NoAction {};
+
+using GoBoardAction = std::variant<NoAction, CaptureStones, AddStone>;
 
 #endif

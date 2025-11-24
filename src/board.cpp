@@ -3,12 +3,14 @@
 #include "base.hpp"
 #include "draw.hpp"
 #include "error.hpp"
-#include "undo.hpp"
+#include "state.hpp"
 #include "utils.hpp"
+#include "rules.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_oldnames.h>
 #include <SDL3_ttf/SDL_textengine.h>
+#include <memory>
 #include <optional>
 
 GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim) {
@@ -17,7 +19,7 @@ GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim) {
     this->window_h = h;
     this->renderer = renderer;
 
-    this->state = new GoBoardState(dim);
+    this->state = std::make_unique<GoBoardState>(dim);
     this->turn = GoTurn::BLACK;
     this->auto_switch_flag = true;
 
@@ -57,19 +59,32 @@ void GoBoard::handleEvent(SDL_Event* event) {
             SDL_MouseButtonEvent mouse_event = event->button;
             if (mouse_event.button == SDL_BUTTON_LEFT) {
                 std::optional<std::pair<int, int>> point_opt =
-                    getBoardCellFromPoint(this->board, mouse_event.x, mouse_event.y);
+                    getBoardCellFromPoint(
+                        this->board,
+                        mouse_event.x,
+                        mouse_event.y
+                    );
                 if (point_opt.has_value()) {
                     int x = point_opt->first;
                     int y = point_opt->second;
                     SDL_Log("x: %d, y: %d", x, y);
-                    AddStone addStoneAction = {{this->turn, x, y}};
-                    this->state->addAction(addStoneAction);
-                    if (this->auto_switch_flag) {
-                        this->turn = this->turn == GoTurn::WHITE ?
-                            GoTurn::BLACK :
-                            GoTurn::WHITE;
+
+                    Result<bool, GoErrorEnum> res =
+                        this->state->addStone({this->turn, x, y});
+
+                    if (res.is_err()) {
+                        // Stop rendering and display error
+                        SDL_Log("Add stone error");
                     }
-                    SDL_Log("Point added");
+
+                    if (res.is_ok() && res.ok_value()) {
+                        if (this->auto_switch_flag) {
+                            this->turn = this->turn == GoTurn::WHITE ?
+                                GoTurn::BLACK :
+                                GoTurn::WHITE;
+                        }
+                        SDL_Log("Point added");
+                    }
                 }
             }
             break;
@@ -82,20 +97,19 @@ void GoBoard::render () {
     float mouse_x, mouse_y;
     Uint32 button_state = SDL_GetMouseState(&mouse_x, &mouse_y);
 
-    Result<GoBoardStateComputed, GoErrorEnum> computed_state_res = this->state->compute();
-    if (computed_state_res.is_err()) {
-        // Show error message (Force to reset)
-    }
-
-    auto computed_state = computed_state_res.ok_value();
+    GoBoardStateComputed computed_state = this->state->getComputed();
     std::optional<std::pair<int, int>> point_opt =
         getBoardCellFromPoint(this->board, mouse_x, mouse_y);
     if (point_opt.has_value()) {
         int x = point_opt->first;
         int y = point_opt->second;
+
+        GoStone stone = {turn, x, y};
         GoBoardCellState cell_state = computed_state.get(x, y);
-        if (cell_state == GoBoardCellState::EMPTY) {
-            GoDrawHelper::DrawStone(renderer, board, {turn, x, y}, 128);
+        if (cell_state == GoBoardCellState::EMPTY
+                && GoBoardRuleManager::isValidStone(computed_state, stone))
+        {
+            GoDrawHelper::DrawStone(renderer, board, stone, 128);
         }
     }
 
@@ -131,9 +145,4 @@ void GoBoard::renderUI () {
 
         std::string captures = "Captures: W = 3, B = 2";
         GoDrawHelper::DrawText(text_engine, font, {board.x, board.y + board.size + 6}, captures, 12);
-}
-
-GoBoard::~GoBoard () {
-    delete this->state;
-    this->state = nullptr;
 }

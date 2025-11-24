@@ -11,8 +11,13 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_ttf/SDL_textengine.h>
+#include "test.hpp"
 
 int main(int argc, char **argv) {
+    if (!isTestPassed()) {
+        return -1;
+    }
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "Init error : " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
@@ -61,8 +66,8 @@ int main(int argc, char **argv) {
 
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
-    GoBoard* board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
-    board->setupTextEngine(text_engine, font);
+    GoBoard board(renderer, w, h, GoBoardSize::_9x9);
+    board.setupTextEngine(text_engine, font);
 
     while (isRunning) {
         SDL_Event event;
@@ -72,7 +77,7 @@ int main(int argc, char **argv) {
                 continue;
             }
 
-            board->handleEvent(&event);
+            board.handleEvent(&event);
         }
 
         // Clear screen
@@ -82,10 +87,10 @@ int main(int argc, char **argv) {
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
 
-        board->updateBoardInfo(w, h);
-        board->render();
+        board.updateBoardInfo(w, h);
+        board.render();
 
-        board->renderUI();
+        board.renderUI();
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS

@@ -43,6 +43,12 @@ struct GoStone {
         return y < other.y;
     }
 
+    bool operator==(const GoStone& other) const {
+        return turn == other.turn &&
+               x == other.x &&
+               y == other.y;
+    }
+
     GoStone(GoTurn turn, int px, int py) : turn(turn), x(px), y(py) {}
 };
 

@@ -5,10 +5,10 @@ SDL tool to analyze go games. The main purpose of this tool is to self analyze a
 ![Game](screenshots/main.png)
 
 Todo:
-- Compute board state after addAction
-- Use board state to check if stone is already added
-- Add GoBoardRuleManager to validate move (if stone can be added to the position)
-- Remove action: RemoveStones and add CaptureStones { GoStone, GoStone[] }, to know which stone addition caused the capture
+- ~~Compute board state after addAction~~
+- ~~Use board state to check if stone is already added~~
+- ~~Add GoBoardRuleManager to validate move (if stone can be added to the position)~~
+- ~~Remove action: RemoveStones and add CaptureStones { GoStone, GoStone[] }, to know which stone addition caused the capture~~
 - Handle Ko situation (repeating board position is not allowed)
 - Connect to KataGo and evaluate board position
 - Use 'space' to get next best move (based on the turn) (using a number before 'space' will update board state to that many best moves)
