@@ -5,6 +5,13 @@
 #include <optional>
 #include <variant>
 
+void GoBoardState::handleUndoClear () {
+    if (undo_by > 0 && actions.size() >= undo_by) {
+        actions.resize(actions.size()-undo_by);
+    }
+    undo_by = 0;
+}
+
 void GoBoardState::clear () {
     actions.clear();
     undo_by = 0;
@@ -12,17 +19,34 @@ void GoBoardState::clear () {
     this->computed = GoBoardStateComputed(static_cast<int>(dim));
 }
 
-std::optional<GoErrorEnum> GoBoardState::undo () {
-    if (actions.size() - (undo_by+1) >= 0) {
+Result<bool, GoErrorEnum> GoBoardState::redo () {
+    if (undo_by-1 >= 0) {
+        undo_by--;
+
+        Result<GoBoardStateComputed, GoErrorEnum> res = this->compute();
+        if (res.is_err()) {
+            return Err(res.err_value());
+        }
+
+        return Ok(true);
+    }
+
+    return Ok(false);
+}
+
+Result<bool, GoErrorEnum> GoBoardState::undo () {
+    if (static_cast<long>(actions.size()) - (undo_by+1) >= 0) {
         undo_by++;
 
         Result<GoBoardStateComputed, GoErrorEnum> res = this->compute();
         if (res.is_err()) {
-            return std::make_optional<GoErrorEnum>(res.err_value());
+            return Err(res.err_value());
         }
+
+        return Ok(true);
     }
 
-    return std::nullopt;
+    return Ok(false);
 }
 
 Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
@@ -40,6 +64,7 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
         for (auto group : captured_groups) {
             removed_stones.insert(removed_stones.end(), group.begin(), group.end());
         }
+        this->handleUndoClear();
         actions.push_back(
             CaptureStones({
                 stone, removed_stones
@@ -48,6 +73,7 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
         is_stone_added = true;
         SDL_Log("Action: CaptureStones(%lu)", removed_stones.size());
     } else if (GoBoardRuleManager::isValidStoneIgnoringCapture(this->computed, stone)) {
+        this->handleUndoClear();
         actions.push_back(
             AddStone({stone})
         );

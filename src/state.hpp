@@ -52,13 +52,16 @@ class GoBoardState {
     GoBoardStateComputed computed;
     GoBoardSize dim;
 
+    void handleUndoClear ();
+
 public:
     GoBoardState(GoBoardSize dim): dim(dim), actions(0), computed(static_cast<int>(dim)) {}
 
     void clear ();
     Result<bool, GoErrorEnum> addStone (GoStone stone);
     void addAction (GoBoardAction action);
-    std::optional<GoErrorEnum> undo ();
+    Result<bool, GoErrorEnum> undo ();
+    Result<bool, GoErrorEnum> redo ();
 
     Result<GoBoardStateComputed, GoErrorEnum> compute ();
     GoBoardStateComputed getComputed () {

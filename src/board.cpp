@@ -52,6 +52,28 @@ void GoBoard::handleEvent(SDL_Event* event) {
                     GoTurn::WHITE;
             } else if (key_event.scancode == SDL_SCANCODE_X) {
                 this->auto_switch_flag = !this->auto_switch_flag;
+            } else if (key_event.scancode == SDL_SCANCODE_U) {
+                Result<bool, GoErrorEnum> res = this->state->undo();
+                if (res.is_err()) {
+                    SDL_Log("Undo error");
+                }
+
+                if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
+                    this->turn = this->turn == GoTurn::WHITE ?
+                        GoTurn::BLACK :
+                        GoTurn::WHITE;
+                }
+            } else if (key_event.scancode == SDL_SCANCODE_R) {
+                Result<bool, GoErrorEnum> res = this->state->redo();
+                if (res.is_err()) {
+                    SDL_Log("Redo error");
+                }
+
+                if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
+                    this->turn = this->turn == GoTurn::WHITE ?
+                        GoTurn::BLACK :
+                        GoTurn::WHITE;
+                }
             }
             break;
         }
