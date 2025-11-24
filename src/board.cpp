@@ -89,7 +89,6 @@ void GoBoard::handleEvent(SDL_Event* event) {
                 if (point_opt.has_value()) {
                     int x = point_opt->first;
                     int y = point_opt->second;
-                    SDL_Log("x: %d, y: %d", x, y);
 
                     Result<bool, GoErrorEnum> res =
                         this->state->addStone({this->turn, x, y});
@@ -105,7 +104,6 @@ void GoBoard::handleEvent(SDL_Event* event) {
                                 GoTurn::BLACK :
                                 GoTurn::WHITE;
                         }
-                        SDL_Log("Point added");
                     }
                 }
             }

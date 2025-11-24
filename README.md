@@ -9,6 +9,9 @@ Todo:
 - ~~Use board state to check if stone is already added~~
 - ~~Add GoBoardRuleManager to validate move (if stone can be added to the position)~~
 - ~~Remove action: RemoveStones and add CaptureStones { GoStone, GoStone[] }, to know which stone addition caused the capture~~
+- ~~Add undo and redo functionality using 'u' and 'r' key~~
+- Add functionality to pass for both turns (End game if both pass)
+- Display turn pass in UI
 - Handle Ko situation (repeating board position is not allowed)
 - Connect to KataGo and evaluate board position
 - Use 'space' to get next best move (based on the turn) (using a number before 'space' will update board state to that many best moves)

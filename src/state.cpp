@@ -71,14 +71,12 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
             })
         );
         is_stone_added = true;
-        SDL_Log("Action: CaptureStones(%lu)", removed_stones.size());
     } else if (GoBoardRuleManager::isValidStoneIgnoringCapture(this->computed, stone)) {
         this->handleUndoClear();
         actions.push_back(
             AddStone({stone})
         );
         is_stone_added = true;
-        SDL_Log("Action: AddStones");
     }
 
     if (is_stone_added) {
