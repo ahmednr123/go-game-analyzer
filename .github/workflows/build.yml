@@ -37,14 +37,11 @@ jobs:
           mkdir out
           cp MCE out/
           cp -r assets out/
-          cd out
-          zip -r go-game-linux.zip .
-          mv go-game-linux.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-linux
-          path: go-game-linux.zip
+          path: build-linux/out/*
 
   # ============================
   # Windows (DLLs)
@@ -77,14 +74,11 @@ jobs:
           cp MCE.exe out/
           cp *.dll out/ || true
           cp -r assets out/
-          cd out
-          zip -r go-game-windows.zip .
-          mv go-game-windows.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-windows
-          path: go-game-windows.zip
+          path: build-windows/out/*
 
   # ============================
   # macOS (Homebrew SDL3)
@@ -116,12 +110,9 @@ jobs:
           mkdir out
           cp MCE out/
           cp -r assets out/
-          cd out
-          zip -r go-game-macos.zip .
-          mv go-game-macos.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-macos
-          path: go-game-macos.zip
+          path: build-macos/out/*
 
