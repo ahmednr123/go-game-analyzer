@@ -11,7 +11,6 @@ jobs:
   # Linux & Windows
   # ============================
   build-linux:
-    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,19 +37,19 @@ jobs:
           mkdir out
           cp MCE out/
           cp -r assets out/
-          zip -r go-game-linux.zip out
-          mv go-game-linux.zip ../
+          cd out
+          zip -r ../go-game-linux.zip .
+          mv go-game-linux.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
-          name: go-game-linux.zip
+          name: go-game-linux
           path: go-game-linux.zip
 
   # ============================
   # Windows (DLLs)
   # ============================
   build-windows:
-    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -78,12 +77,13 @@ jobs:
           cp MCE.exe out/
           cp *.dll out/ || true
           cp -r assets out/
-          zip -r go-game-windows.zip out
-          mv go-game-windows.zip ../
+          cd out
+          zip -r ../go-game-windows.zip .
+          mv go-game-windows.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
-          name: go-game-windows.zip
+          name: go-game-windows
           path: go-game-windows.zip
 
   # ============================
@@ -116,11 +116,12 @@ jobs:
           mkdir out
           cp MCE out/
           cp -r assets out/
-          zip -r go-game-macos.zip out
-          mv go-game-macos.zip ../
+          cd out
+          zip -r go-game-macos.zip .
+          mv go-game-macos.zip ../../
 
       - uses: actions/upload-artifact@v4
         with:
-          name: go-game-macos.zip
+          name: go-game-macos
           path: go-game-macos.zip
 
