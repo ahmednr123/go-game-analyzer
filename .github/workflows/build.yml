@@ -128,11 +128,15 @@ jobs:
         with:
           path: artifacts/
 
+      - name: Debug List
+        run: |
+          cd artifacts
+          ls -lah
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.TOKEN }}
-          inherit_tag: true
           generate_release_notes: true
           files: |
             artifacts/go-game-linux
