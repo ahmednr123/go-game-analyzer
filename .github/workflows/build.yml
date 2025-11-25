@@ -38,7 +38,7 @@ jobs:
           cp MCE out/
           cp -r assets out/
           cd out
-          zip -r ../go-game-linux.zip .
+          zip -r go-game-linux.zip .
           mv go-game-linux.zip ../../
 
       - uses: actions/upload-artifact@v4
@@ -78,7 +78,7 @@ jobs:
           cp *.dll out/ || true
           cp -r assets out/
           cd out
-          zip -r ../go-game-windows.zip .
+          zip -r go-game-windows.zip .
           mv go-game-windows.zip ../../
 
       - uses: actions/upload-artifact@v4
