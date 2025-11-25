@@ -10,7 +10,6 @@ set(SOURCES
     src/main.cpp
     src/draw.cpp
     src/board.cpp
-    src/compute.cpp
     src/state.cpp
     src/rules.cpp
 )
@@ -26,6 +25,7 @@ set(HEADERS
     src/utils.hpp
     src/rules.hpp
     src/test.hpp
+    src/compute.hpp
 )
 
 add_executable(MCE ${SOURCES} ${HEADERS})

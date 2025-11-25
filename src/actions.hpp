@@ -5,22 +5,27 @@
 #include <variant>
 #include <vector>
 
-enum class GoBoardActionType {
-    ADD_STONE,
-    CAPTURE_STONES
+//enum class GoBoardActionType {
+//    ADD_STONE,
+//    CAPTURE_STONES,
+//    PASS
+//};
+
+struct PassAction {
+    GoTurn turn;
 };
 
-struct AddStone {
+struct AddStoneAction {
     GoStone stone;
 };
 
-struct CaptureStones {
+struct CaptureStonesAction {
     GoStone capturing_stone;
     std::vector<GoStone> removed_stones;
 };
 
 struct NoAction {};
 
-using GoBoardAction = std::variant<NoAction, CaptureStones, AddStone>;
+using GoBoardAction = std::variant<NoAction, CaptureStonesAction, AddStoneAction, PassAction>;
 
 #endif

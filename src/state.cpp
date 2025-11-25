@@ -1,5 +1,6 @@
 #include "state.hpp"
 #include "actions.hpp"
+#include "compute.hpp"
 #include "error.hpp"
 #include "rules.hpp"
 #include <optional>
@@ -23,11 +24,19 @@ Result<bool, GoErrorEnum> GoBoardState::redo () {
     if (undo_by-1 >= 0) {
         undo_by--;
 
-        Result<GoBoardStateComputed, GoErrorEnum> res = this->compute();
+        Result<GoBoardStateComputed, GoErrorEnum> res =
+            computeActions(
+                this->dim,
+                std::vector(
+                    this->actions.begin(),
+                    this->actions.end() - undo_by
+                )
+            );
         if (res.is_err()) {
             return Err(res.err_value());
         }
 
+        this->computed = res.ok_value();
         return Ok(true);
     }
 
@@ -38,11 +47,19 @@ Result<bool, GoErrorEnum> GoBoardState::undo () {
     if (static_cast<long>(actions.size()) - (undo_by+1) >= 0) {
         undo_by++;
 
-        Result<GoBoardStateComputed, GoErrorEnum> res = this->compute();
+        Result<GoBoardStateComputed, GoErrorEnum> res =
+            computeActions(
+                this->dim,
+                std::vector(
+                    this->actions.begin(),
+                    this->actions.end() - undo_by
+                )
+            );
         if (res.is_err()) {
             return Err(res.err_value());
         }
 
+        this->computed = res.ok_value();
         return Ok(true);
     }
 
@@ -66,7 +83,7 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
         }
         this->handleUndoClear();
         actions.push_back(
-            CaptureStones({
+            CaptureStonesAction({
                 stone, removed_stones
             })
         );
@@ -74,56 +91,46 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
     } else if (GoBoardRuleManager::isValidStoneIgnoringCapture(this->computed, stone)) {
         this->handleUndoClear();
         actions.push_back(
-            AddStone({stone})
+            AddStoneAction({stone})
         );
         is_stone_added = true;
     }
 
     if (is_stone_added) {
-        Result<GoBoardStateComputed, GoErrorEnum> res = this->compute();
+        Result<GoBoardStateComputed, GoErrorEnum> res =
+            computeActions(
+                this->dim,
+                std::vector(
+                    this->actions.begin(),
+                    this->actions.end() - undo_by
+                )
+            );
         if (res.is_err()) {
             return Err(res.err_value());
         }
+
+        this->computed = res.ok_value();
     }
 
     return Ok(is_stone_added);
 }
 
-void GoBoardState::addAction (GoBoardAction action) {
-    bool is_valid =
-        std::visit([&](auto&& action) -> bool {
-            using T = std::decay_t<decltype(action)>;
+int GoBoardState::getCaptures (GoTurn turn) {
+    int captures = 0;
+    for (int i = 0; i < actions.size() - undo_by; i++) {
+        auto action = actions[i];
 
-            if constexpr (std::is_same_v<T, AddStone>) {
-                // Check if stone already exists
-                GoStone stone = action.stone;
-                GoBoardCellState cell_state = computed.get(stone.x, stone.y);
-                if (cell_state != GoBoardCellState::EMPTY) {
-                    return false;
+        captures +=
+            std::visit([&](auto&& action) -> int {
+                using T = std::decay_t<decltype(action)>;
+
+                if constexpr (std::is_same_v<T, CaptureStonesAction>) {
+                    if (action.capturing_stone.turn == turn)
+                        return action.removed_stones.size();
                 }
-            }
-            else if constexpr (std::is_same_v<T, CaptureStones>) {
-                // Same Check if stone already exists
-                GoStone stone = action.capturing_stone;
-                GoBoardCellState cell_state = computed.get(stone.x, stone.y);
-                if (cell_state != GoBoardCellState::EMPTY) {
-                    return false;
-                }
-            }
 
-            return true;
-        }, action);
-
-    if (!is_valid) {
-        return;
+                return 0;
+            }, action);
     }
-
-    if (undo_by > 0 && actions.size() >= undo_by) {
-        actions.resize(actions.size()-undo_by);
-    }
-
-    actions.push_back(action);
-    undo_by = 0;
-
-    // Compute now?
+    return captures;
 }

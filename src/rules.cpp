@@ -10,11 +10,6 @@ GoBoardRuleManager::exploreGroupAndLiberties(
     GroupResult result;
     std::queue<std::pair<int,int>> q;
 
-//    GoBoardCellState startState = board.get(sx, sy);
-//    auto startTurn = getTurnFromCellState(startState);
-//    if (!startTurn.has_value()) return result; // empty cell, not a group
-//
-//    GoTurn target = startTurn.value();
     q.push({sx, sy});
     visited[sx][sy] = true;
 

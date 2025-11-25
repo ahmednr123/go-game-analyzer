@@ -12,6 +12,7 @@
 #include <SDL3_ttf/SDL_textengine.h>
 #include <memory>
 #include <optional>
+#include <string>
 
 GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim) {
     this->dim = dim;
@@ -153,6 +154,10 @@ void GoBoard::render () {
     }
 }
 
+std::string getCapturesString (int black_captures, int white_captures) {
+    return "Captures: B(" + std::to_string(black_captures) + ") W(" + std::to_string(white_captures) + ")";
+}
+
 void GoBoard::renderUI () {
         std::string auto_switch = "Auto Switch: ";
         auto_switch += auto_switch_flag ? "True" : "False";
@@ -163,6 +168,6 @@ void GoBoard::renderUI () {
         GoDrawHelper::DrawText(text_engine, font, {board.x + board.size, board.y - 20},
                 turn == GoTurn::WHITE ? "White to play" : "Black to play", 12, GoTextAlign::RIGHT_ALIGN);
 
-        std::string captures = "Captures: W = 3, B = 2";
+        std::string captures = getCapturesString(state->getCaptures(GoTurn::BLACK), state->getCaptures(GoTurn::WHITE));
         GoDrawHelper::DrawText(text_engine, font, {board.x, board.y + board.size + 6}, captures, 12);
 }
