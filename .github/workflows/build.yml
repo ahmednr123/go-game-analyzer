@@ -135,6 +135,10 @@ jobs:
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
+        run: |
+          ls -lah
+          cd artifacts
+          ls -lah
         with:
           token: ${{ secrets.TOKEN }}
           generate_release_notes: true
