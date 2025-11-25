@@ -122,33 +122,11 @@ jobs:
     needs: [build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-
     steps:
-      - name: Download Linux artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: go-game-linux
           path: artifacts/
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: go-game-windows
-          path: artifacts/
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: go-game-macos
-          path: artifacts/
-
-      - name: Create archive files
-        run: |
-          cd artifacts
-          zip -r go-game-linux.zip go-game-linux || true
-          zip -r go-game-windows.zip go-game-windows || true
-          zip -r go-game-macos.zip go-game-macos || true
-          ls -lah
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -157,6 +135,6 @@ jobs:
           inherit_tag: true
           generate_release_notes: true
           files: |
-            artifacts/go-game-linux.zip
-            artifacts/go-game-windows.zip
-            artifacts/go-game-macos.zip
+            artifacts/go-game-linux
+            artifacts/go-game-windows
+            artifacts/go-game-macos
