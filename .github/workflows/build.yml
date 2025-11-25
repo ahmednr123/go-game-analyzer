@@ -116,31 +116,47 @@ jobs:
           path: build-macos/out/*
 
   # ============================
-  # Publish
+  # Publish Release (GitHub Release)
   # ============================
   publish:
     needs: [build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
         with:
           name: go-game-linux
           path: artifacts/
 
-      - uses: actions/download-artifact@v4
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
         with:
           name: go-game-windows
           path: artifacts/
 
-      - uses: actions/download-artifact@v4
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
         with:
           name: go-game-macos
           path: artifacts/
 
-      - name: Publish Release
+      - name: Create archive files
+        run: |
+          cd artifacts
+          zip -r go-game-linux.zip go-game-linux || true
+          zip -r go-game-windows.zip go-game-windows || true
+          zip -r go-game-macos.zip go-game-macos || true
+          ls -lah
+
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
-          generate_release_notes: true
           token: ${{ secrets.TOKEN }}
+          inherit_tag: true
+          generate_release_notes: true
+          files: |
+            artifacts/go-game-linux.zip
+            artifacts/go-game-windows.zip
+            artifacts/go-game-macos.zip
