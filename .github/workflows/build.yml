@@ -61,12 +61,12 @@ jobs:
           zip -r go-game-windows.zip out
           mv go-game-windows.zip ../
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: go-game-linux
           path: go-game-linux.zip
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: go-game-windows
           path: go-game-windows.zip
@@ -105,7 +105,7 @@ jobs:
           zip -r go-game-macos.zip out
           mv go-game-macos.zip ../
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: go-game-macos
           path: go-game-macos.zip
