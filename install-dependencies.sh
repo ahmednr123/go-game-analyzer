@@ -6,8 +6,6 @@ libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
 libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev \
 libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
 
-sudo apt install -y mingw-w64
-
 wget https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.xz
 
 tar -xf freetype-2.14.1.tar.xz

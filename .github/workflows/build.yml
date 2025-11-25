@@ -40,6 +40,24 @@ jobs:
           zip -r go-game-linux.zip out
           mv go-game-linux.zip ../
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: go-game-linux.zip
+          path: go-game-linux.zip
+
+  # ============================
+  # Windows (DLLs)
+  # ============================
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          sudo apt update && sudo apt install -y cmake g++ make
+          sudo apt install -y mingw-w64
+
       - name: Configure Windows
         run: |
           mkdir build-windows
@@ -63,14 +81,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: go-game-linux
-          path: go-game-linux.zip
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: go-game-windows
+          name: go-game-windows.zip
           path: go-game-windows.zip
-
 
   # ============================
   # macOS (Homebrew SDL3)
@@ -83,7 +95,7 @@ jobs:
       - name: Install SDL3 via Homebrew
         run: |
           brew update
-          brew install sdl3 sdl3_ttf freetype
+          brew install sdl3 sdl3_ttf
 
       - name: Configure
         run: |
@@ -107,6 +119,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: go-game-macos
+          name: go-game-macos.zip
           path: go-game-macos.zip
 
