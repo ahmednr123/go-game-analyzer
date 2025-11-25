@@ -26,7 +26,7 @@ getBoardCellFromPoint (GoBoardInfo board, float px, float py) {
             float r = board.inner_gap/2 - 5;
 
             if (isPointInCircle(px, py, cx, cy, r)) {
-                return std::make_optional<std::pair<int, int>>({x, y});
+                return std::make_optional<std::pair<int,int>>(x, y);
             }
         }
     }

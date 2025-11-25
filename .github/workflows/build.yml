@@ -1,0 +1,112 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [ cross-build ]
+  pull_request:
+    branches: [ cross-build ]
+
+jobs:
+  # ============================
+  # Linux & Windows
+  # ============================
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          sudo apt update && sudo apt install -y cmake g++ make
+          sh ./install-dependencies.sh
+
+      - name: Configure Linux
+        run: |
+          mkdir build-linux
+          cd build-linux
+          cmake ..
+
+      - name: Build Linux
+        run: |
+          cd build-linux
+          cmake --build .
+
+      - name: Package Linux
+        run: |
+          cd build-linux
+          mkdir out
+          cp MCE out/
+          cp -r assets out/
+          zip -r go-game-linux.zip out
+          mv go-game-linux.zip ../
+
+      - name: Configure Windows
+        run: |
+          mkdir build-windows
+          cd build-windows
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=../mingw-w64-toolchain.cmake
+
+      - name: Build Windows
+        run: |
+          cd build-windows
+          cmake --build .
+
+      - name: Package Windows
+        run: |
+          cd build-windows
+          mkdir out
+          cp MCE.exe out/
+          cp *.dll out/ || true
+          cp -r assets out/
+          zip -r go-game-windows.zip out
+          mv go-game-windows.zip ../
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: go-game-linux
+          path: go-game-linux.zip
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: go-game-windows
+          path: go-game-windows.zip
+
+
+  # ============================
+  # macOS (Homebrew SDL3)
+  # ============================
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install SDL3 via Homebrew
+        run: |
+          brew update
+          brew install sdl3 sdl3_ttf freetype
+
+      - name: Configure
+        run: |
+          mkdir build-macos
+          cd build-macos
+          cmake ..
+
+      - name: Build
+        run: |
+          cd build-macos
+          cmake --build . --config Release -j
+
+      - name: Package
+        run: |
+          cd build-macos
+          mkdir out
+          cp MCE out/
+          cp -r assets out/
+          zip -r go-game-macos.zip out
+          mv go-game-macos.zip ../
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: go-game-macos
+          path: go-game-macos.zip
+

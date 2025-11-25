@@ -5,7 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# --- Add all C++ source files here ---
+# -----------------------------------------
+# Source files
+# -----------------------------------------
 set(SOURCES
     src/main.cpp
     src/draw.cpp
@@ -30,7 +32,56 @@ set(HEADERS
 
 add_executable(MCE ${SOURCES} ${HEADERS})
 
-# --- Try pkg-config first ---
+
+# -----------------------------------------
+# Detect MinGW cross compilation
+# -----------------------------------------
+if (MINGW)
+    message(STATUS "Cross compiling with MinGW → manual SDL3 setup")
+
+    # Your Windows SDL3 libs are in lib/
+    target_include_directories(MCE PRIVATE
+        ${CMAKE_SOURCE_DIR}/lib/include
+    )
+
+    target_link_directories(MCE PRIVATE
+        ${CMAKE_SOURCE_DIR}/lib
+    )
+
+    # Link Windows import libraries
+    target_link_libraries(MCE PRIVATE
+        SDL3
+        SDL3_ttf
+        freetype
+    )
+
+    # Copy DLLs next to the exe
+    add_custom_command(
+        TARGET MCE POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/lib/SDL3.dll
+            ${CMAKE_SOURCE_DIR}/lib/SDL3_ttf.dll
+            ${CMAKE_SOURCE_DIR}/lib/freetype.dll
+            $<TARGET_FILE_DIR:MCE>
+    )
+
+    # Copy assets
+    add_custom_command(
+        TARGET MCE POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:MCE>/assets/fonts
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
+            $<TARGET_FILE_DIR:MCE>/assets/fonts
+    )
+
+    return()
+endif()
+
+
+# -----------------------------------------
+# Native Linux / macOS build
+# -----------------------------------------
 find_package(PkgConfig QUIET)
 if (PkgConfig_FOUND)
     pkg_check_modules(SDL3_PKG QUIET sdl3)
@@ -56,23 +107,19 @@ if (SDL3_PKG_FOUND AND SDL3_TTF_PKG_FOUND)
     )
 
 else()
-    # --- Fallback: CMake config package ---
+    # --- Fallback: CMake config ---
     find_package(SDL3 CONFIG QUIET)
     find_package(SDL3_ttf CONFIG QUIET)
 
     if (TARGET SDL3::SDL3 AND TARGET SDL3_ttf::SDL3_ttf)
         message(STATUS "Using SDL3 + SDL3_ttf (CMake package)")
-        target_link_libraries(MCE PRIVATE
-            SDL3::SDL3
-            SDL3_ttf::SDL3_ttf
-        )
+        target_link_libraries(MCE PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
     else()
-        message(FATAL_ERROR
-            "SDL3_ttf not found! Install SDL3_ttf or set CMAKE_PREFIX_PATH.")
+        message(FATAL_ERROR "SDL3_ttf not found! Install SDL3_ttf or set CMAKE_PREFIX_PATH.")
     endif()
 endif()
 
-# Copy font assets to the build output
+# Copy assets (Linux/macOS)
 add_custom_command(
     TARGET MCE POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -81,4 +128,3 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
         $<TARGET_FILE_DIR:MCE>/assets/fonts
 )
-
