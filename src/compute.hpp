@@ -20,9 +20,12 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
             std::vector<GoBoardCellState>(board_dim, GoBoardCellState::EMPTY)
     );
 
+    bool is_game_ended = false;
+    std::vector<GoTurn> passes = {};
     for (int i = 0; i < actions.size(); i++) {
         auto action = actions[i];
 
+        if (is_game_ended) break;
         std::optional<GoErrorEnum> err =
             std::visit([&](auto&& action) -> std::optional<GoErrorEnum> {
                 using T = std::decay_t<decltype(action)>;
@@ -33,6 +36,7 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
                         stone.turn == GoTurn::BLACK ?
                             GoBoardCellState::BLACK :
                             GoBoardCellState::WHITE;
+                    passes.clear();
                 }
                 else if constexpr (std::is_same_v<T, CaptureStonesAction>) {
                     GoStone capturing_stone = action.capturing_stone;
@@ -51,6 +55,17 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
 
                         state[stone.x][stone.y] = GoBoardCellState::EMPTY;
                     }
+                    passes.clear();
+                }
+                else if constexpr (std::is_same_v<T, PassAction>) {
+                    GoTurn turn = action.turn;
+                    if (passes.size() > 0) {
+                        if (passes[0] != turn) {
+                            is_game_ended = true;
+                        }
+                    } else {
+                        passes.push_back(turn);
+                    }
                 }
 
                 return std::nullopt;
@@ -61,7 +76,15 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
         }
     }
 
-    return Ok(GoBoardStateComputed(state));
+    return Ok(
+        GoBoardStateComputed(
+            state,
+            passes.size() > 0 ?
+                std::make_optional(passes[0]) :
+                std::nullopt,
+            is_game_ended
+        )
+    );
 }
 
 #endif

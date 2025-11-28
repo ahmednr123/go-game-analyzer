@@ -1,9 +1,11 @@
 #include "state.hpp"
 #include "actions.hpp"
+#include "base.hpp"
 #include "compute.hpp"
 #include "error.hpp"
 #include "rules.hpp"
 #include <optional>
+#include <iostream>
 #include <variant>
 
 void GoBoardState::handleUndoClear () {
@@ -66,7 +68,52 @@ Result<bool, GoErrorEnum> GoBoardState::undo () {
     return Ok(false);
 }
 
+Result<bool, GoErrorEnum> GoBoardState::pass (GoTurn turn) {
+    if (this->computed.isGameEnded())
+        return Ok(false);
+
+    std::optional<GoTurn> prev_turn = std::nullopt;
+
+    if (actions.size() > 0) {
+        auto action = actions[actions.size()-undo_by-1];
+        prev_turn =
+            std::visit([&](auto&& action) -> std::optional<GoTurn> {
+                using T = std::decay_t<decltype(action)>;
+
+                if constexpr (std::is_same_v<T, PassAction>) {
+                    GoTurn turn = action.turn;
+                    return std::make_optional(turn);
+                }
+
+                return std::nullopt;
+            }, action);
+    }
+
+    if (!prev_turn.has_value() || (prev_turn.has_value() && prev_turn.value() != turn)) {
+        actions.push_back(PassAction({turn}));
+        Result<GoBoardStateComputed, GoErrorEnum> res =
+            computeActions(
+                this->dim,
+                std::vector(
+                    this->actions.begin(),
+                    this->actions.end() - undo_by
+                )
+            );
+        if (res.is_err())
+            return Err(res.err_value());
+
+        this->computed = res.ok_value();
+        return Ok(true);
+    }
+
+
+    return Ok(false);
+}
+
 Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
+    if (this->computed.isGameEnded())
+        return Ok(false);
+
     GoBoardCellState cell_state = this->computed.get(stone.x, stone.y);
     if (cell_state != GoBoardCellState::EMPTY) {
         return Ok(false);

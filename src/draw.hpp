@@ -16,7 +16,14 @@ public:
     static void DrawStraightLine (SDL_Renderer* renderer, float ax, float ay, float bx, float by, int stroke);
     static void DrawStraightLine (SDL_Renderer* renderer, float ax, float ay, float bx, float by);
     static void DrawBoard (SDL_Renderer* renderer, GoBoardInfo board);
-    static void DrawText (TTF_TextEngine* text_engine, TTF_Font* font, std::pair<int, int> point, std::string str, int font_size, GoTextAlign align = GoTextAlign::LEFT_ALIGN);
+    static void DrawText (
+        TTF_TextEngine* text_engine,
+        TTF_Font* font, SDL_Color col,
+        std::pair<int, int> point,
+        std::string str,
+        int font_size,
+        GoTextAlign align = GoTextAlign::LEFT_ALIGN
+    );
 
     // Prevent instantiation
     GoDrawHelper() = delete;

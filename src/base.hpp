@@ -2,6 +2,7 @@
 #define GO_BASE_H
 
 #include <SDL3/SDL_render.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -19,6 +20,9 @@ const std::unordered_map<GoBoardSize, std::vector<std::vector<int>>> BOARD_DOTS 
           {3,15}, {9,15}, {15,15}}
     }
 };
+
+const SDL_Color OFF_WHITE_COLOR = {200, 200, 200, 255};
+const SDL_Color RED_COLOR = {230, 67, 67, 255};
 
 enum class GoTextAlign {
     LEFT_ALIGN,

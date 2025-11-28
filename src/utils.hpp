@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 #include <optional>
+#include <random>
+#include <string>
 #include <utility>
 inline bool isPointInCircle(
     float px, float py,
@@ -32,6 +34,25 @@ getBoardCellFromPoint (GoBoardInfo board, float px, float py) {
     }
 
     return std::nullopt;
+}
+
+inline  std::string
+genRandomString(int length) {
+    const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    std::random_device rd;
+    std::mt19937 generator(rd());
+
+    std::uniform_int_distribution<> distribution(0, CHARACTERS.size() - 1);
+
+    std::string randomString;
+    randomString.reserve(length);
+
+    for (int i = 0; i < length; ++i) {
+        randomString += CHARACTERS[distribution(generator)];
+    }
+
+    return randomString;
 }
 
 #endif
