@@ -1,5 +1,6 @@
 #include "draw.hpp"
 #include "base.hpp"
+#include <SDL3/SDL_pixels.h>
 
 void GoDrawHelper::DrawFilledCircle(SDL_Renderer *renderer, int cx, int cy, int radius) {
     for (int dy = -radius; dy <= radius; dy++) {
@@ -103,14 +104,15 @@ void GoDrawHelper::DrawBoard(SDL_Renderer *renderer, GoBoardInfo board) {
     }
 }
 
-void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, TTF_Font* font, std::pair<int, int> point, std::string str, int font_size, GoTextAlign align) {
+void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, TTF_Font* font, SDL_Color col, std::pair<int, int> point, std::string str, int font_size, GoTextAlign align) {
     TTF_SetFontSize(font, font_size);
     TTF_Text *text = TTF_CreateText(text_engine, font, str.c_str(), str.size());
 
     int w, h;
     TTF_GetTextSize(text, &w, &h);
 
-    TTF_SetTextColor(text, 200, 200, 200, 255);
+    //TTF_SetTextColor(text, 200, 200, 200, 255);
+    TTF_SetTextColor(text, col.r, col.g, col.b, col.a);
     if (align == GoTextAlign::LEFT_ALIGN) {
         TTF_DrawRendererText(text, point.first, point.second);
     } else if (align == GoTextAlign::MIDDLE_ALIGN) {

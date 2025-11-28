@@ -11,12 +11,15 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_ttf/SDL_textengine.h>
+#include "config.hpp"
 #include "test.hpp"
 
 int main(int argc, char **argv) {
     if (!isTestPassed()) {
         return -1;
     }
+
+    GoGameConfig::init("./config.json");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "Init error : " << SDL_GetError() << std::endl;

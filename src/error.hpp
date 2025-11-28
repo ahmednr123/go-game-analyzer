@@ -8,7 +8,8 @@
 #define GO_SEVERITY_LOW 1
 
 enum class GoErrorEnum {
-    BOARD_STATE_CORRUPT
+    BOARD_STATE_CORRUPT,
+    UNPARSEABLE_MOVE
 };
 
 struct GoError {
@@ -17,7 +18,8 @@ struct GoError {
 };
 
 const std::unordered_map<GoErrorEnum, GoError> GO_ERRORS = {
-    {GoErrorEnum::BOARD_STATE_CORRUPT, {GO_SEVERITY_HIGH, "Board state error due to invalid action added to the board actions"}}
+    {GoErrorEnum::BOARD_STATE_CORRUPT, {GO_SEVERITY_HIGH, "Board state error due to invalid action added to the board actions"}},
+    {GoErrorEnum::UNPARSEABLE_MOVE, {GO_SEVERITY_HIGH, "Move parsed cannot be handled, handle this situation manually"}}
 };
 
 

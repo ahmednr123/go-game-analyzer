@@ -1,0 +1,5 @@
+{
+    "katago_path": "/home/ahmed/Documents/KataGo/katago",
+    "config_path": "/home/ahmed/Documents/KataGo/analysis_example.cfg",
+    "model_path": "/home/ahmed/Documents/KataGo/g170e-b20c256x2-s5303129600-d1228401921.bin.gz"
+}

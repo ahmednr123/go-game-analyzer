@@ -2,6 +2,7 @@
 #define GO_BOARD_H
 
 #include "base.hpp"
+#include "katago.hpp"
 #include "state.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
@@ -20,9 +21,12 @@ private:
 
     bool auto_switch_flag = true;
     GoTurn turn = GoTurn::BLACK;
-    std::unique_ptr<GoBoardState> state;
+
+    std::shared_ptr<GoBoardState> state;
+    std::vector<std::vector<double>> ownership;
 
     GoBoardInfo board;
+    KataGo katago;
 
 public:
     GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim);

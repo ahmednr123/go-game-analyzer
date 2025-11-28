@@ -25,11 +25,20 @@ inline std::optional<GoTurn> getTurnFromCellState (GoBoardCellState state) {
 }
 
 class GoBoardStateComputed {
+    bool is_ended = false;
+    std::optional<GoTurn> in_pass = std::nullopt;
     std::vector<std::vector<GoBoardCellState>> state;
 
 public:
-    GoBoardStateComputed (int size): state(size, std::vector<GoBoardCellState>(size, GoBoardCellState::EMPTY)) {};
-    GoBoardStateComputed (std::vector<std::vector<GoBoardCellState>> state): state(state) {};
+    GoBoardStateComputed (int size): state(size, std::vector<GoBoardCellState>(size, GoBoardCellState::EMPTY)), is_ended(false) {};
+    GoBoardStateComputed (
+        std::vector<std::vector<GoBoardCellState>> state,
+        std::optional<GoTurn> in_pass,
+        bool is_ended
+    ): state(state),
+       in_pass(in_pass),
+       is_ended(is_ended)
+    {};
 
     bool operator==(const GoBoardStateComputed& other) const {
         if (state.size() != other.state.size())
@@ -46,18 +55,16 @@ public:
         return true;
     }
 
-    GoBoardCellState get (int x, int y) const {
-        return state[x][y];
-    }
-
-    int getSize () const {
-        return state.size();
-    }
+    bool isGameEnded () const { return is_ended; }
+    std::optional<GoTurn> inPass () const { return in_pass; }
+    GoBoardCellState get (int x, int y) const { return state[x][y]; }
+    int getSize () const { return state.size(); }
 };
 
 class GoBoardState {
     int undo_by = 0;
     std::vector<GoBoardAction> actions;
+    std::vector<std::vector<double>> ownership;
 
     GoBoardStateComputed computed;
     GoBoardSize dim;
@@ -68,14 +75,14 @@ public:
     GoBoardState(GoBoardSize dim): dim(dim), actions(0), computed(static_cast<int>(dim)) {}
 
     void clear ();
+
+    Result<bool, GoErrorEnum> pass (GoTurn turn);
     Result<bool, GoErrorEnum> addStone (GoStone stone);
     Result<bool, GoErrorEnum> undo ();
     Result<bool, GoErrorEnum> redo ();
 
-    GoBoardStateComputed getComputed () {
-        return this->computed;
-    }
-
+    std::vector<GoBoardAction> getActions () { return this->actions; }
+    GoBoardStateComputed getComputed () { return this->computed; }
     int getCaptures (GoTurn turn);
 };
 

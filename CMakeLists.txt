@@ -14,6 +14,9 @@ set(SOURCES
     src/board.cpp
     src/state.cpp
     src/rules.cpp
+    src/katago.cpp
+    src/katago_engine.cpp
+    src/config.cpp
 )
 
 set(HEADERS
@@ -28,6 +31,9 @@ set(HEADERS
     src/rules.hpp
     src/test.hpp
     src/compute.hpp
+    src/katago.hpp
+    src/katago_engine.hpp
+    src/config.hpp
 )
 
 add_executable(MCE ${SOURCES} ${HEADERS})
@@ -102,5 +108,8 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
         $<TARGET_FILE_DIR:MCE>/assets/fonts
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/config.json
+        $<TARGET_FILE_DIR:MCE>/config.json
 )
 
