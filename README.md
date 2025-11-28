@@ -14,7 +14,7 @@ Todo:
 - ~~Add functionality to pass for both turns (End game if both pass)~~
 - ~~Display turn pass in UI~~
 - ~~Connect to KataGo and evaluate board position~~
-- ~~Use 'space' to get next best move (based on the turn)~~ (\[Next feature release\]using a number before 'space' will update board state to that many best moves)
+- ~~Use 'space' to get next best move (based on the turn)~~
 - ~~Add multiple platform build solution in CMakeLists.txt~~
 - ~~Use Github workflows to generate multiple releases for different platforms (Windows, Linux and MacOS)~~
 - Evaluate score (no need KataGo) and display it (ownership) (maybe)
@@ -31,3 +31,7 @@ Todo:
 - Fix addStone & pass duplicate code (use variant?)
 - BUG: Use threads for AI responses (callback hangs rendering)
 - Windows code to handle KataGo communication
+
+Next Release:
+- Finding dead groups and show moves that lead to group death
+- Find mistakes and point whats the aftermath
