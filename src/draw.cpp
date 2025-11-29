@@ -77,6 +77,24 @@ void GoDrawHelper::DrawStraightLine(SDL_Renderer *renderer, float ax, float ay, 
     DrawStraightLine(renderer, ax, ay, bx, by, 1);
 }
 
+void GoDrawHelper::DrawOwnershipCell (SDL_Renderer* renderer, GoBoardInfo board, std::pair<int, int> cell, double value) {
+    float size = 0;
+    if (value < 0) {
+        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        size = (value * -1) * (board.inner_gap * 0.5);
+    } else if (value > 0) {
+        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        size = value * (board.inner_gap * 0.5);
+    }
+
+    if (size > 0) {
+        float abs_x = board.inner_x + cell.first * board.inner_gap;
+        float abs_y = board.inner_y + cell.second * board.inner_gap;
+        SDL_FRect rect = { abs_x - (size/2), abs_y - (size/2), size, size };
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
 void GoDrawHelper::DrawBoard(SDL_Renderer *renderer, GoBoardInfo board) {
     SDL_SetRenderDrawColor(renderer, 186, 107, 58, 255);
     SDL_FRect rect = { board.x, board.y, board.size, board.size };

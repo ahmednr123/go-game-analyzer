@@ -1,4 +1,5 @@
 #include "katago_engine.hpp"
+#include <SDL3/SDL_log.h>
 #include <cmath>
 #include <iostream>
 
@@ -130,13 +131,12 @@ std::vector<std::string> KataGoEngine::getNextMove(int topN) {
     };
 }
 
-std::vector<std::vector<double>> KataGoEngine::getOwnership () {
+KataGoEvaluation KataGoEngine::getEvaluation () {
     json msg = getJSON();
 
-    std::cout << msg.dump(4) << std::endl;
-
-    if (!msg.contains("ownership")) {
+    if (!msg.contains("ownership") || !msg.contains("rootInfo") || !msg["rootInfo"].contains("scoreLead")) {
         // Bad json
+        SDL_Log("getEvaluation JSON ERROR!");
     }
 
     int board_size = std::sqrt(msg["ownership"].size());
@@ -147,5 +147,5 @@ std::vector<std::vector<double>> KataGoEngine::getOwnership () {
         ownership[x][y] = msg["ownership"][i];
     }
 
-    return ownership;
+    return {msg["rootInfo"]["scoreLead"], ownership};
 }

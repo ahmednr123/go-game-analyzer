@@ -3,8 +3,11 @@
 #include "base.hpp"
 #include "error.hpp"
 #include "helpers.hpp"
+#include "katago_engine.hpp"
+#include "katago_settings.hpp"
 #include "utils.hpp"
 #include <SDL3/SDL_log.h>
+#include <cassert>
 #include <optional>
 
 std::vector<std::string> parseMove (json response) {
@@ -73,38 +76,43 @@ KataGo::KataGo(
     this->size = size;
 }
 
-void KataGo::nextNMoves (
-    std::vector<GoBoardAction> actions,
-    int n, std::function<void(std::variant<GoStone, GoTurn>)> func
+void KataGo::updateDiffLevel (int diff_lvl) {
+    assert((diff_lvl >= 1 && diff_lvl <= 5) && "Difficulty level out of range. [Accepted range: 1-5]");
+    this->diff_lvl = diff_lvl;
+}
+
+std::optional<std::variant<GoStone, GoTurn>>
+KataGo::nextNMoves (
+    std::vector<GoBoardAction> actions, int n
 ) {
+    std::optional<std::variant<GoStone, GoTurn>> go_move_opt = std::nullopt;
+    std::lock_guard<std::mutex> lock(work_mutex);
     try {
-        is_busy = true;
+        is_busy.store(true);
         std::vector<std::vector<std::string>> moves =
             getMoves(this->size, actions);
 
         while (n--) {
             std::string id = genRandomString(5);
             json query = getMoveQuery(id, moves, size);
-            std::cout << query.dump() << std::endl;
+            addDiffLevelToKatagoRequest(query, this->diff_lvl);
 
             engine.sendJSON(query);
 
             std::vector<std::string> next_move = engine.getNextMove();
             moves.push_back(next_move);
 
-            if (func != nullptr) {
-                if (next_move[1] != "pass") {
-                    GoStone stone = katagoMoveToStone(this->size, next_move);
-                    std::cout << "Move: " << next_move[0] << next_move[1] << ", x=" << stone.x << " y=" << stone.y << std::endl;
-                    func(stone);
-                } else {
-                    std::cout << "Move: " << next_move[0] << " pass" << std::endl;
-                    func(
-                        next_move[0] == "B" ?
-                            GoTurn::BLACK :
-                            GoTurn::WHITE
-                    );
-                }
+            if (next_move[1] != "pass") {
+                GoStone stone = katagoMoveToStone(this->size, next_move);
+                std::cout << "Move: " << next_move[0] << next_move[1] << ", x=" << stone.x << " y=" << stone.y << std::endl;
+                go_move_opt = std::make_optional(stone);
+            } else {
+                std::cout << "Move: " << next_move[0] << " pass" << std::endl;
+                go_move_opt = std::make_optional(
+                    next_move[0] == "B" ?
+                        GoTurn::BLACK :
+                        GoTurn::WHITE
+                );
             }
         }
 
@@ -113,34 +121,33 @@ void KataGo::nextNMoves (
         std::cerr << "Error details: " << err.id << " at position " << err.byte << std::endl;
     }
 
-    is_busy = false;
+    is_busy.store(false);
+    return go_move_opt;
 }
 
-std::optional<std::vector<std::vector<double>>>
+std::optional<KataGoEvaluation>
 KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
+    std::lock_guard<std::mutex> lock(work_mutex);
+    std::optional<KataGoEvaluation> evaluation = std::nullopt;
     try {
-        is_busy = true;
         std::vector<std::vector<std::string>> moves =
             getMoves(this->size, actions);
 
         std::string id = genRandomString(5);
-        std::cout << "GENERATING EVALUATION QUERY" << std::endl;
         json query = getEvaluationQuery(id, moves, size);
-        std::cout << query.dump() << std::endl;
 
         engine.sendJSON(query);
 
-        return engine.getOwnership();
+        evaluation = engine.getEvaluation();
     } catch (const json::parse_error& err) {
         std::cerr << "Parse error for invalid JSON: " << err.what() << std::endl;
         std::cerr << "Error details: " << err.id << " at position " << err.byte << std::endl;
     }
 
-    is_busy = false;
-    return std::nullopt;
+    return evaluation;
 }
 
-bool KataGo::isBusy () {
-    return is_busy;
+ bool KataGo::isBusy () {
+    return is_busy.load();
 }
 

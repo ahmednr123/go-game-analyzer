@@ -33,7 +33,9 @@ GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim):
     this->turn = GoTurn::BLACK;
     this->auto_switch_flag = true;
 
+    int board_dim = static_cast<int>(dim);
     this->board = GetGoBoardInfo(w, h, dim);
+    this->katago_evaluation = {0, std::vector<std::vector<double>>(board_dim, std::vector<double>(board_dim, 0))};
 }
 
 void GoBoard::setupTextEngine(TTF_TextEngine* text_engine, TTF_Font* font) {
@@ -45,8 +47,63 @@ void GoBoard::updateBoardInfo(int w, int h) {
     board = GetGoBoardInfo(w, h, dim);
 }
 
+void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
+    if (katago.isBusy()) return;
+    std::visit([&](auto &&go_move) {
+        using T = std::decay_t<decltype(go_move)>;
+        if constexpr (std::is_same_v<T, GoStone>) {
+            Result<bool, GoErrorEnum> res = state->addStone(go_move);
+            if (res.is_err()) {
+                SDL_Log("Add stone error");
+            }
+
+            if (res.is_ok() && res.ok_value()) {
+                if (auto_switch_flag && turn == go_move.turn) {
+                    turn = turn == GoTurn::WHITE ?
+                        GoTurn::BLACK :
+                        GoTurn::WHITE;
+                }
+                std::thread([&]() {
+                    auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                    if (katago_evaluation_opt.has_value()) {
+                        katago_evaluation = katago_evaluation_opt.value();
+                    }
+                }).detach();
+            }
+        }
+        else if constexpr (std::is_same_v<T, GoTurn>) {
+            Result<bool, GoErrorEnum> res = state->pass(go_move);
+            if (res.is_err()) {
+                SDL_Log("Pass error");
+            }
+
+            if (res.is_ok() && res.ok_value()) {
+                if (auto_switch_flag && turn == go_move) {
+                    turn = turn == GoTurn::WHITE ?
+                        GoTurn::BLACK :
+                        GoTurn::WHITE;
+                }
+                std::thread([&]() {
+                    auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                    if (katago_evaluation_opt.has_value()) {
+                        katago_evaluation = katago_evaluation_opt.value();
+                    }
+                }).detach();
+            }
+        }
+    }, go_move);
+}
+
 void GoBoard::handleEvent(SDL_Event* event) {
     switch (event->type) {
+        case SDL_EVENT_KEY_DOWN: {
+            SDL_KeyboardEvent key_event = event->key;
+            if (key_event.scancode == SDL_SCANCODE_V) {
+                this->view_ownership = true;
+            }
+
+            break;
+        }
         case SDL_EVENT_KEY_UP: {
             SDL_KeyboardEvent key_event = event->key;
 
@@ -56,7 +113,9 @@ void GoBoard::handleEvent(SDL_Event* event) {
                 }
             }
 
-            if (key_event.scancode == SDL_SCANCODE_C) {
+            if (key_event.scancode == SDL_SCANCODE_V) {
+                this->view_ownership = false;
+            } else if (key_event.scancode == SDL_SCANCODE_C) {
                 this->turn = this->turn == GoTurn::WHITE ?
                     GoTurn::BLACK :
                     GoTurn::WHITE;
@@ -72,6 +131,12 @@ void GoBoard::handleEvent(SDL_Event* event) {
                     this->turn = this->turn == GoTurn::WHITE ?
                         GoTurn::BLACK :
                         GoTurn::WHITE;
+                    std::thread([&]() {
+                        auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                        if (katago_evaluation_opt.has_value()) {
+                            katago_evaluation = katago_evaluation_opt.value();
+                        }
+                    }).detach();
                 }
             } else if (key_event.scancode == SDL_SCANCODE_R) {
                 Result<bool, GoErrorEnum> res = this->state->redo();
@@ -83,67 +148,32 @@ void GoBoard::handleEvent(SDL_Event* event) {
                     this->turn = this->turn == GoTurn::WHITE ?
                         GoTurn::BLACK :
                         GoTurn::WHITE;
+                    std::thread([&]() {
+                        auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                        if (katago_evaluation_opt.has_value()) {
+                            katago_evaluation = katago_evaluation_opt.value();
+                        }
+                    }).detach();
                 }
             } else if (key_event.scancode == SDL_SCANCODE_P) {
-                Result<bool, GoErrorEnum> res = this->state->pass(this->turn);
-                if (res.is_err()) {
-                    SDL_Log("Pass error");
-                }
-
-                if (res.is_ok() && res.ok_value()) {
-                    if (this->auto_switch_flag) {
-                        this->turn = this->turn == GoTurn::WHITE ?
-                            GoTurn::BLACK :
-                            GoTurn::WHITE;
-                    }
-                    //auto ownership_opt = this->katago.getEvaluation(this->state->getActions());
-                    //if (ownership_opt.has_value()) {
-                    //    this->ownership = ownership_opt.value();
-                    //}
-                }
+                this->handleGoMove(this->turn);
             } else if (key_event.scancode == SDL_SCANCODE_SPACE) {
-                auto _this = this;
-                this->katago.nextNMoves(this->state->getActions(), 1, [&](std::variant<GoStone, GoTurn> go_move) {
-                    std::visit([&](auto &&go_move) {
-                        using T = std::decay_t<decltype(go_move)>;
-                        if constexpr (std::is_same_v<T, GoStone>) {
-                            Result<bool, GoErrorEnum> res = _this->state->addStone(go_move);
-                            if (res.is_err()) {
-                                SDL_Log("AI add stone error");
-                            }
-
-                            if (res.is_ok() && res.ok_value()) {
-                                if (_this->auto_switch_flag && _this->turn == go_move.turn) {
-                                    _this->turn = _this->turn == GoTurn::WHITE ?
-                                        GoTurn::BLACK :
-                                        GoTurn::WHITE;
-                                }
-                                //auto ownership_opt = this->katago.getEvaluation(this->state->getActions());
-                                //if (ownership_opt.has_value()) {
-                                //    this->ownership = ownership_opt.value();
-                                //}
-                            }
-                        }
-                        else if constexpr (std::is_same_v<T, GoTurn>) {
-                            Result<bool, GoErrorEnum> res = _this->state->pass(go_move);
-                            if (res.is_err()) {
-                                SDL_Log("AI pass error");
-                            }
-
-                            if (res.is_ok() && res.ok_value()) {
-                                if (_this->auto_switch_flag && _this->turn == go_move) {
-                                    _this->turn = _this->turn == GoTurn::WHITE ?
-                                        GoTurn::BLACK :
-                                        GoTurn::WHITE;
-                                }
-                                //auto ownership_opt = this->katago.getEvaluation(this->state->getActions());
-                                //if (ownership_opt.has_value()) {
-                                //    this->ownership = ownership_opt.value();
-                                //}
-                            }
-                        }
-                    }, go_move);
-                });
+                if (!this->state->getComputed().isGameEnded()) {
+                    auto go_move_opt = this->katago.nextNMoves(this->state->getActionsWithUndo(), 1);
+                    if (go_move_opt.has_value()) {
+                        this->handleGoMove(go_move_opt.value());
+                    }
+                }
+            } else if (key_event.scancode == SDL_SCANCODE_5) {
+                this->katago.updateDiffLevel(5);
+            } else if (key_event.scancode == SDL_SCANCODE_4) {
+                this->katago.updateDiffLevel(4);
+            } else if (key_event.scancode == SDL_SCANCODE_3) {
+                this->katago.updateDiffLevel(3);
+            } else if (key_event.scancode == SDL_SCANCODE_2) {
+                this->katago.updateDiffLevel(2);
+            } else if (key_event.scancode == SDL_SCANCODE_1) {
+                this->katago.updateDiffLevel(1);
             }
             break;
         }
@@ -160,25 +190,8 @@ void GoBoard::handleEvent(SDL_Event* event) {
                     int x = point_opt->first;
                     int y = point_opt->second;
 
-                    Result<bool, GoErrorEnum> res =
-                        this->state->addStone({this->turn, x, y});
-
-                    if (res.is_err()) {
-                        // Stop rendering and display error
-                        SDL_Log("Add stone error");
-                    }
-
-                    if (res.is_ok() && res.ok_value()) {
-                        if (this->auto_switch_flag) {
-                            this->turn = this->turn == GoTurn::WHITE ?
-                                GoTurn::BLACK :
-                                GoTurn::WHITE;
-                        }
-                        //auto ownership_opt = this->katago.getEvaluation(this->state->getActions());
-                        //if (ownership_opt.has_value()) {
-                        //    this->ownership = ownership_opt.value();
-                        //}
-                    }
+                    GoStone stone = {this->turn, x, y};
+                    this->handleGoMove(stone);
                 }
             }
             break;
@@ -227,6 +240,18 @@ void GoBoard::render () {
             }
         }
     }
+
+    if (this->view_ownership) {
+        for (int x = 0; x < board_dim; x++) {
+            for (int y = 0; y < board_dim; y++) {
+                GoDrawHelper::DrawOwnershipCell(
+                    this->renderer,
+                    this->board, {x, y},
+                    this->katago_evaluation.ownership[x][y]
+                );
+            }
+        }
+    }
 }
 
 std::string getCapturesString (int black_captures, int white_captures) {
@@ -234,41 +259,68 @@ std::string getCapturesString (int black_captures, int white_captures) {
 }
 
 void GoBoard::renderUI () {
-        std::string auto_switch = "Auto Switch: ";
-        auto_switch += auto_switch_flag ? "True" : "False";
-        GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y - 20}, auto_switch, 12);
+    std::string auto_switch = "Auto Switch: ";
+    auto_switch += auto_switch_flag ? "True" : "False";
+    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y - 20}, auto_switch, 12);
+
+    if (katago.isBusy()) {
+        GoDrawHelper::DrawText(
+            text_engine, font, RED_COLOR,
+            {board.x + (board.size/2), board.y - 20},
+            "[Engine Busy]", 12, GoTextAlign::MIDDLE_ALIGN
+        );
+    } else {
+        std::string diff_levels = " 5  4  3  2  1 ";
+        int diff_lvl = this->katago.getDiffLevel();
+        diff_levels[(5-diff_lvl)*3] = '[';
+        diff_levels[(5-diff_lvl)*3 + 2] = ']';
 
         GoDrawHelper::DrawText(
             text_engine, font, OFF_WHITE_COLOR,
             {board.x + (board.size/2), board.y - 20},
-            "5  4 [3] 2  1",
+            diff_levels, 12, GoTextAlign::MIDDLE_ALIGN
+        );
+    }
+
+    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x + board.size, board.y - 20},
+            turn == GoTurn::WHITE ? "White to play" : "Black to play", 12, GoTextAlign::RIGHT_ALIGN);
+
+    std::string captures = getCapturesString(state->getCaptures(GoTurn::BLACK), state->getCaptures(GoTurn::WHITE));
+    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y + board.size + 6}, captures, 12);
+
+    if (this->state->getComputed().isGameEnded()) {
+        GoDrawHelper::DrawText(
+            text_engine, font, RED_COLOR,
+            {board.x + (board.size/2), board.y + board.size + 6},
+            "[GAME ENDED]",
             12, GoTextAlign::MIDDLE_ALIGN
         );
-
-        GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x + board.size, board.y - 20},
-                turn == GoTurn::WHITE ? "White to play" : "Black to play", 12, GoTextAlign::RIGHT_ALIGN);
-
-        std::string captures = getCapturesString(state->getCaptures(GoTurn::BLACK), state->getCaptures(GoTurn::WHITE));
-        GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y + board.size + 6}, captures, 12);
-
-        if (this->state->getComputed().isGameEnded()) {
+    } else {
+        std::optional<GoTurn> in_pass = this->state->getComputed().inPass();
+        if (in_pass.has_value()) {
             GoDrawHelper::DrawText(
-                text_engine, font, RED_COLOR,
+                text_engine, font, OFF_WHITE_COLOR,
                 {board.x + (board.size/2), board.y + board.size + 6},
-                "[GAME ENDED]",
+                in_pass.value() == GoTurn::WHITE ? "White Passes" : "Black Passes",
                 12, GoTextAlign::MIDDLE_ALIGN
             );
-        } else {
-            std::optional<GoTurn> in_pass = this->state->getComputed().inPass();
-            if (in_pass.has_value()) {
-                GoDrawHelper::DrawText(
-                    text_engine, font, OFF_WHITE_COLOR,
-                    {board.x + (board.size/2), board.y + board.size + 6},
-                    in_pass.value() == GoTurn::WHITE ? "White Passes" : "Black Passes",
-                    12, GoTextAlign::MIDDLE_ALIGN
-                );
-            }
         }
+    }
 
-        GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x + board.size, board.y + board.size + 6}, "W+20", 12, GoTextAlign::RIGHT_ALIGN);
+    std::string score = "B+0";
+    if (katago_evaluation.score > 0) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << katago_evaluation.score;
+        score = "B+" + oss.str();
+    } else if (katago_evaluation.score < 0) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << (katago_evaluation.score * -1);
+        score = "W+" + oss.str();
+    }
+
+    GoDrawHelper::DrawText(
+        text_engine, font, OFF_WHITE_COLOR,
+        {board.x + board.size, board.y + board.size + 6},
+        score, 12, GoTextAlign::RIGHT_ALIGN
+    );
 }

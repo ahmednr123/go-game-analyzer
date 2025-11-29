@@ -15,6 +15,7 @@ public:
     static void DrawStone (SDL_Renderer* renderer, GoBoardInfo board, GoStone stone);
     static void DrawStraightLine (SDL_Renderer* renderer, float ax, float ay, float bx, float by, int stroke);
     static void DrawStraightLine (SDL_Renderer* renderer, float ax, float ay, float bx, float by);
+    static void DrawOwnershipCell (SDL_Renderer* renderer, GoBoardInfo board, std::pair<int, int> cell, double value);
     static void DrawBoard (SDL_Renderer* renderer, GoBoardInfo board);
     static void DrawText (
         TTF_TextEngine* text_engine,

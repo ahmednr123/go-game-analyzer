@@ -5,6 +5,7 @@
 #include "base.hpp"
 #include "json.hpp"
 #include "katago_engine.hpp"
+#include "katago_settings.hpp"
 #include <SDL3/SDL_log.h>
 #include <iostream>
 #include <optional>
@@ -33,10 +34,6 @@ inline json getMoveQuery (
 
     req["boardXSize"] = board_size;
     req["boardYSize"] = board_size;
-
-    req["maxVisits"] = 1000;
-    req["rootPolicyTemperature"] = 0.3;//1.4;
-    req["rootFpuReductionMax"] = 0.5;//0.0;
 
     return req;
 }
@@ -103,7 +100,11 @@ class KataGo {
 private:
     GoBoardSize size;
     KataGoEngine engine;
-    bool is_busy = false;
+
+    std::mutex work_mutex;
+    std::atomic<bool> is_busy{false};
+
+    int diff_lvl = 5; // 5,4,3,2,1
 
 public:
     KataGo(
@@ -113,12 +114,14 @@ public:
         GoBoardSize size
     );
 
-    void nextNMoves (
-        std::vector<GoBoardAction> actions,
-        int n, std::function<void(std::variant<GoStone, GoTurn>)> func = nullptr
+    int getDiffLevel () { return diff_lvl; }
+    void updateDiffLevel (int diff_lvl);
+
+    std::optional<std::variant<GoStone, GoTurn>> nextNMoves (
+        std::vector<GoBoardAction> actions, int n
     );
 
-    std::optional<std::vector<std::vector<double>>>
+    std::optional<KataGoEvaluation>
     getEvaluation (std::vector<GoBoardAction> actions);
 
     bool isBusy ();

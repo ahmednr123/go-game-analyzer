@@ -64,7 +64,6 @@ public:
 class GoBoardState {
     int undo_by = 0;
     std::vector<GoBoardAction> actions;
-    std::vector<std::vector<double>> ownership;
 
     GoBoardStateComputed computed;
     GoBoardSize dim;
@@ -80,6 +79,13 @@ public:
     Result<bool, GoErrorEnum> addStone (GoStone stone);
     Result<bool, GoErrorEnum> undo ();
     Result<bool, GoErrorEnum> redo ();
+
+    std::vector<GoBoardAction> getActionsWithUndo () {
+        return std::vector(
+            this->actions.begin(),
+            this->actions.end()-undo_by
+        );
+    }
 
     std::vector<GoBoardAction> getActions () { return this->actions; }
     GoBoardStateComputed getComputed () { return this->computed; }

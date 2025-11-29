@@ -3,6 +3,7 @@
 
 #include "base.hpp"
 #include "katago.hpp"
+#include "katago_engine.hpp"
 #include "state.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
@@ -23,7 +24,8 @@ private:
     GoTurn turn = GoTurn::BLACK;
 
     std::shared_ptr<GoBoardState> state;
-    std::vector<std::vector<double>> ownership;
+    KataGoEvaluation katago_evaluation;
+    bool view_ownership = false;
 
     GoBoardInfo board;
     KataGo katago;
@@ -33,6 +35,8 @@ public:
 
     void setupTextEngine(TTF_TextEngine* text_engine, TTF_Font* font);
     void updateBoardInfo (int w, int h);
+
+    void handleGoMove (std::variant<GoStone, GoTurn> go_move);
 
     void render();
     void handleEvent(SDL_Event* event);
