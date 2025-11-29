@@ -12,6 +12,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_ttf/SDL_textengine.h>
 #include "config.hpp"
+#include "sound.hpp"
 #include "test.hpp"
 
 int main(int argc, char **argv) {
@@ -21,7 +22,7 @@ int main(int argc, char **argv) {
 
     GoGameConfig::init("./config.json");
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         std::cerr << "Init error : " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
     }
@@ -63,6 +64,11 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    if (!GoSound::init()) {
+        std::cerr << "Sound initialization failed: " << SDL_GetError() << "\n";
+        return EXIT_FAILURE;
+    }
+
     bool isRunning = true;
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -98,6 +104,8 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS
     }
+
+    GoSound::destroy();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

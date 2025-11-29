@@ -4,6 +4,7 @@
 #include "draw.hpp"
 #include "error.hpp"
 #include "katago.hpp"
+#include "sound.hpp"
 #include "state.hpp"
 #include "utils.hpp"
 #include "rules.hpp"
@@ -58,6 +59,7 @@ void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
             }
 
             if (res.is_ok() && res.ok_value()) {
+                GoSound::playTap();
                 if (auto_switch_flag && turn == go_move.turn) {
                     turn = turn == GoTurn::WHITE ?
                         GoTurn::BLACK :
@@ -78,6 +80,7 @@ void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
             }
 
             if (res.is_ok() && res.ok_value()) {
+                GoSound::playTap();
                 if (auto_switch_flag && turn == go_move) {
                     turn = turn == GoTurn::WHITE ?
                         GoTurn::BLACK :

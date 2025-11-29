@@ -4,6 +4,7 @@
 #include "compute.hpp"
 #include "error.hpp"
 #include "rules.hpp"
+#include "sound.hpp"
 #include <optional>
 #include <iostream>
 #include <variant>
@@ -124,6 +125,8 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
         GoBoardRuleManager::getCapturedGroups(this->computed, stone);
 
     if (captured_groups.size() > 0) {
+        GoSound::playCapture();
+
         std::vector<GoStone> removed_stones;
         for (auto group : captured_groups) {
             removed_stones.insert(removed_stones.end(), group.begin(), group.end());
