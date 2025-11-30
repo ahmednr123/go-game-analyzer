@@ -69,6 +69,10 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    if (!GoSound::loadMusicFiles()) {
+        std::cerr << "Music files loading failed: " << SDL_GetError() << "\n";
+    }
+
     bool isRunning = true;
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -113,5 +117,6 @@ int main(int argc, char **argv) {
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_Quit();
+
     return EXIT_SUCCESS;
 }

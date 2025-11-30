@@ -1,5 +1,7 @@
 #include "sound.hpp"
 #include <SDL3_mixer/SDL_mixer.h>
+#include <filesystem>
+#include <iostream>
 
 MIX_Mixer* GoSound::mixer = nullptr;
 
@@ -8,6 +10,11 @@ MIX_Audio* GoSound::capture_audio = nullptr;
 
 MIX_Track* GoSound::tap_track = nullptr;
 MIX_Track* GoSound::capture_track = nullptr;
+
+int GoSound::current_audio = 0;
+std::vector<MIX_Audio*> GoSound::bg_audio_files = {};
+MIX_Track* GoSound::bg_track = nullptr;
+
 
 bool GoSound::init () {
     if (!MIX_Init()) {
@@ -46,15 +53,65 @@ bool GoSound::init () {
     return true;
 }
 
-void GoSound::playTap() {
+bool GoSound::loadMusicFiles () {
+    namespace fs = std::filesystem;
+    std::string music_path = "assets/music";
+    if (!fs::exists(music_path) || !fs::is_directory(music_path)) {
+        std::cerr << "Error: Directory '" << music_path << "' does not exist or is not a directory." << std::endl;
+        return false;
+    }
+
+    for (const auto& entry : fs::directory_iterator(music_path)) {
+        if (fs::is_regular_file(entry.status())) {
+            std::string file_name = entry.path().filename().string();
+            std::string file_path = music_path + "/" + file_name;
+
+            MIX_Audio* audio = MIX_LoadAudio(nullptr, file_path.c_str(), false);
+            if (!audio) {
+                SDL_Log("Failed to load music file: %s", file_name.c_str());
+                continue;
+            }
+
+            SDL_Log("Loaded file: %s", file_name.c_str());
+            bg_audio_files.push_back(audio);
+        }
+    }
+
+    bg_track = MIX_CreateTrack(mixer);
+    MIX_SetTrackGain(bg_track, 0.3f);
+
+    if (!bg_audio_files.empty()) {
+        MIX_SetTrackStoppedCallback(bg_track, GoSound::playNextMusic, nullptr);
+
+
+        MIX_SetTrackAudio(bg_track, bg_audio_files[current_audio]);
+        MIX_PlayTrack(bg_track, 0);
+    }
+    return true;
+}
+
+void GoSound::playTap () {
     MIX_PlayTrack(tap_track, 0);
 }
 
-void GoSound::playCapture() {
+void GoSound::playCapture () {
     MIX_PlayTrack(capture_track, 0);
 }
 
-void GoSound::destroy() {
+void GoSound::playNextMusic (void* userdata, MIX_Track* track) {
+    current_audio = (current_audio+1)%bg_audio_files.size();
+
+    SDL_Log("Playing music: %d", current_audio);
+    MIX_SetTrackAudio(track, bg_audio_files[current_audio]);
+    MIX_PlayTrack(track, 0);
+}
+
+void GoSound::destroy () {
+    MIX_DestroyTrack(bg_track);
+    for (int i = 0; i < bg_audio_files.size(); i++) {
+        MIX_DestroyAudio(bg_audio_files[i]);
+    }
+
     MIX_DestroyTrack(tap_track);
     MIX_DestroyTrack(capture_track);
 

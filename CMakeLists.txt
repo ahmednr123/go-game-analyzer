@@ -82,12 +82,19 @@ if (MINGW)
         TARGET MCE POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:MCE>/assets/fonts
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:MCE>/assets/sound
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:MCE>/assets/music
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
             $<TARGET_FILE_DIR:MCE>/assets/fonts
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/assets/sound/*
             $<TARGET_FILE_DIR:MCE>/assets/sound
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/assets/music/*
+            $<TARGET_FILE_DIR:MCE>/assets/music
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/config.json
             $<TARGET_FILE_DIR:MCE>/config.json
@@ -136,12 +143,17 @@ add_custom_command(
         $<TARGET_FILE_DIR:MCE>/assets/fonts
     COMMAND ${CMAKE_COMMAND} -E make_directory
         $<TARGET_FILE_DIR:MCE>/assets/sound
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        $<TARGET_FILE_DIR:MCE>/assets/music
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
         $<TARGET_FILE_DIR:MCE>/assets/fonts
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/assets/sound/*
         $<TARGET_FILE_DIR:MCE>/assets/sound
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/assets/music/*
+        $<TARGET_FILE_DIR:MCE>/assets/music
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/config.json
         $<TARGET_FILE_DIR:MCE>/config.json
