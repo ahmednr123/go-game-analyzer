@@ -1,6 +1,14 @@
 #ifndef GO_DRAW_H
 #define GO_DRAW_H
 
+#ifdef DrawText
+#undef DrawText
+#endif
+
+#ifdef DrawTextA
+#undef DrawTextA
+#endif
+
 #include "base.hpp"
 #include <SDL3/SDL_render.h>
 #include <SDL3_ttf/SDL_ttf.h>

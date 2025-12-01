@@ -15,6 +15,7 @@ int GoSound::current_audio = 0;
 std::vector<MIX_Audio*> GoSound::bg_audio_files = {};
 MIX_Track* GoSound::bg_track = nullptr;
 
+bool GoSound::play_music = true;
 
 bool GoSound::init () {
     if (!MIX_Init()) {
@@ -104,6 +105,12 @@ void GoSound::playNextMusic (void* userdata, MIX_Track* track) {
     SDL_Log("Playing music: %d", current_audio);
     MIX_SetTrackAudio(track, bg_audio_files[current_audio]);
     MIX_PlayTrack(track, 0);
+}
+
+bool GoSound::toggleMusic () {
+    play_music = !play_music;
+    MIX_SetTrackGain(bg_track, play_music ? 0.3f : 0.0f);
+    return play_music;
 }
 
 void GoSound::destroy () {

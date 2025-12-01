@@ -53,6 +53,8 @@ set(PKG_CONFIG_EXECUTABLE "")
 if (MINGW)
     message(STATUS "Building with MinGW")
 
+    add_compile_definitions(WINDOWS)
+
     target_include_directories(MCE PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/include
     )
@@ -64,6 +66,7 @@ if (MINGW)
     target_link_libraries(MCE PRIVATE
         SDL3
         SDL3_ttf
+        SDL3_mixer
         freetype
     )
 
@@ -71,9 +74,10 @@ if (MINGW)
     add_custom_command(
         TARGET MCE POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/lib/SDL3.dll
-            ${CMAKE_SOURCE_DIR}/lib/SDL3_ttf.dll
-            ${CMAKE_SOURCE_DIR}/lib/freetype.dll
+            ${CMAKE_SOURCE_DIR}/lib/windows/SDL3.dll
+            ${CMAKE_SOURCE_DIR}/lib/windows/SDL3_ttf.dll
+            ${CMAKE_SOURCE_DIR}/lib/windows/SDL3_mixer.dll
+            ${CMAKE_SOURCE_DIR}/lib/windows/freetype.dll
             $<TARGET_FILE_DIR:MCE>
     )
 
@@ -96,7 +100,7 @@ if (MINGW)
             ${CMAKE_SOURCE_DIR}/assets/music/*
             $<TARGET_FILE_DIR:MCE>/assets/music
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/config.json
+            ${CMAKE_SOURCE_DIR}/config.windows.json
             $<TARGET_FILE_DIR:MCE>/config.json
     )
 
@@ -155,7 +159,7 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/assets/music/*
         $<TARGET_FILE_DIR:MCE>/assets/music
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/config.json
+        ${CMAKE_SOURCE_DIR}/config.macos-linux.json
         $<TARGET_FILE_DIR:MCE>/config.json
 )
 

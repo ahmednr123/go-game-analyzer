@@ -17,6 +17,8 @@ class GoSound {
     static std::vector<MIX_Audio*> bg_audio_files;
     static MIX_Track* bg_track;
 
+    static bool play_music;
+
 public:
     static bool init ();
     static bool loadMusicFiles ();
@@ -24,6 +26,7 @@ public:
     static void playTap ();
     static void playCapture ();
     static void playNextMusic (void* userdata, MIX_Track* track);
+    static bool toggleMusic ();
 
     static void destroy ();
 

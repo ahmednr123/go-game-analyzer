@@ -116,7 +116,9 @@ void GoBoard::handleEvent(SDL_Event* event) {
                 }
             }
 
-            if (key_event.scancode == SDL_SCANCODE_V) {
+            if (key_event.scancode == SDL_SCANCODE_M) {
+                GoSound::toggleMusic();
+            } else if (key_event.scancode == SDL_SCANCODE_V) {
                 this->view_ownership = false;
             } else if (key_event.scancode == SDL_SCANCODE_C) {
                 this->turn = this->turn == GoTurn::WHITE ?
@@ -266,13 +268,19 @@ void GoBoard::renderUI () {
     auto_switch += auto_switch_flag ? "True" : "False";
     GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y - 20}, auto_switch, 12);
 
-    if (katago.isBusy()) {
+    if (!katago.isInitialized()) {
+        GoDrawHelper::DrawText(
+            text_engine, font, RED_COLOR,
+            {board.x + (board.size/2), board.y - 20},
+            "[Engine not found]", 12, GoTextAlign::MIDDLE_ALIGN
+        );
+    } else if (katago.isInitialized() && katago.isBusy()) {
         GoDrawHelper::DrawText(
             text_engine, font, RED_COLOR,
             {board.x + (board.size/2), board.y - 20},
             "[Engine Busy]", 12, GoTextAlign::MIDDLE_ALIGN
         );
-    } else {
+    } else if (katago.isInitialized()){
         std::string diff_levels = " 5  4  3  2  1 ";
         int diff_lvl = this->katago.getDiffLevel();
         diff_levels[(5-diff_lvl)*3] = '[';
@@ -310,20 +318,28 @@ void GoBoard::renderUI () {
         }
     }
 
-    std::string score = "B+0";
-    if (katago_evaluation.score > 0) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(2) << katago_evaluation.score;
-        score = "B+" + oss.str();
-    } else if (katago_evaluation.score < 0) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(2) << (katago_evaluation.score * -1);
-        score = "W+" + oss.str();
+    if (katago.isInitialized()) {
+        std::string score = "B+0";
+        if (katago_evaluation.score > 0) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2) << katago_evaluation.score;
+            score = "B+" + oss.str();
+        } else if (katago_evaluation.score < 0) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2) << (katago_evaluation.score * -1);
+            score = "W+" + oss.str();
+        }
+        GoDrawHelper::DrawText(
+            text_engine, font, OFF_WHITE_COLOR,
+            {board.x + board.size, board.y + board.size + 6},
+            score, 12, GoTextAlign::RIGHT_ALIGN
+        );
+    } else {
+        GoDrawHelper::DrawText(
+            text_engine, font, OFF_WHITE_COLOR,
+            {board.x + board.size, board.y + board.size + 6},
+            "[Needs KataGo]", 12, GoTextAlign::RIGHT_ALIGN
+        );
     }
 
-    GoDrawHelper::DrawText(
-        text_engine, font, OFF_WHITE_COLOR,
-        {board.x + board.size, board.y + board.size + 6},
-        score, 12, GoTextAlign::RIGHT_ALIGN
-    );
 }
