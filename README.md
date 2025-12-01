@@ -25,12 +25,12 @@ Todo:
 - ~~Show score and final winner~~
 - ~~Fix addStone & pass duplicate code (use variant?)~~
 - ~~BUG: Use threads for AI responses (callback hangs rendering)~~
+- ~~Add sound effects & music~~
+- ~~Windows code to handle KataGo communication~~
 - Handle Ko situation (repeating board position is not allowed)
 - Display error and stop rendering if any error is prompted
-- Add sound effects & music
 - Add theme functionality
 - Let AI play from the current turn (Switch to "moves" & "initialMoves")
-- Windows code to handle KataGo communication
 
 Next Release:
 - Finding dead groups and show moves that lead to group death
