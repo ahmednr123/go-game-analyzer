@@ -1,0 +1,8 @@
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_VERSION 10)
+
+set(TRIPLE x86_64-w64-mingw32)
+
+set(CMAKE_C_COMPILER   ${TRIPLE}-gcc)
+set(CMAKE_CXX_COMPILER ${TRIPLE}-g++)
+set(CMAKE_RC_COMPILER  ${TRIPLE}-windres)

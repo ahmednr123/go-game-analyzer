@@ -8,6 +8,7 @@
 #include "utils.hpp"
 #include <SDL3/SDL_log.h>
 #include <cassert>
+#include <memory>
 #include <optional>
 
 std::vector<std::string> parseMove (json response) {
@@ -72,7 +73,18 @@ KataGo::KataGo(
     const std::string& config_path,
     const std::string& model_path,
     GoBoardSize size
-): engine(katago_path, config_path, model_path) {
+) {
+    this->engine =
+        std::unique_ptr<KataGoEngine>(
+            new KataGoEngine(
+                katago_path,
+                config_path,
+                model_path,
+                [&](bool is_failure) {
+                    is_init_failure = is_failure;
+                }
+            )
+        );
     this->size = size;
 }
 
@@ -85,6 +97,9 @@ std::optional<std::variant<GoStone, GoTurn>>
 KataGo::nextNMoves (
     std::vector<GoBoardAction> actions, int n
 ) {
+    if (is_init_failure)
+        return std::nullopt;
+
     std::optional<std::variant<GoStone, GoTurn>> go_move_opt = std::nullopt;
     std::lock_guard<std::mutex> lock(work_mutex);
     try {
@@ -97,9 +112,16 @@ KataGo::nextNMoves (
             json query = getMoveQuery(id, moves, size);
             addDiffLevelToKatagoRequest(query, this->diff_lvl);
 
-            engine.sendJSON(query);
+            engine->sendJSON(query);
 
-            std::vector<std::string> next_move = engine.getNextMove();
+            std::optional<std::vector<std::string>>
+                next_move_opt = engine->getNextMove();
+
+            if (!next_move_opt.has_value()) {
+                return std::nullopt;
+            }
+
+            std::vector<std::string> next_move = next_move_opt.value();
             moves.push_back(next_move);
 
             if (next_move[1] != "pass") {
@@ -127,6 +149,9 @@ KataGo::nextNMoves (
 
 std::optional<KataGoEvaluation>
 KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
+    if (is_init_failure)
+        return std::nullopt;
+
     std::lock_guard<std::mutex> lock(work_mutex);
     std::optional<KataGoEvaluation> evaluation = std::nullopt;
     try {
@@ -136,9 +161,9 @@ KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
         std::string id = genRandomString(5);
         json query = getEvaluationQuery(id, moves, size);
 
-        engine.sendJSON(query);
+        engine->sendJSON(query);
 
-        evaluation = engine.getEvaluation();
+        evaluation = engine->getEvaluation();
     } catch (const json::parse_error& err) {
         std::cerr << "Parse error for invalid JSON: " << err.what() << std::endl;
         std::cerr << "Error details: " << err.id << " at position " << err.byte << std::endl;

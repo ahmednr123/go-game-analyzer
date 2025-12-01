@@ -8,6 +8,7 @@
 #include "katago_settings.hpp"
 #include <SDL3/SDL_log.h>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -99,10 +100,12 @@ inline std::vector<std::string> stoneToKatagoMove (GoBoardSize size, GoStone sto
 class KataGo {
 private:
     GoBoardSize size;
-    KataGoEngine engine;
+    std::unique_ptr<KataGoEngine> engine = nullptr;
 
     std::mutex work_mutex;
     std::atomic<bool> is_busy{false};
+
+    bool is_init_failure = false;
 
     int diff_lvl = 5; // 5,4,3,2,1
 
@@ -125,6 +128,9 @@ public:
     getEvaluation (std::vector<GoBoardAction> actions);
 
     bool isBusy ();
+    bool isInitialized () {
+        return !is_init_failure;
+    }
 };
 
 #endif

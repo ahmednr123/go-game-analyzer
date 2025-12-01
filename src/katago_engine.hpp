@@ -1,6 +1,7 @@
 #ifndef KATAGO_ENGINE_HPP
 #define KATAGO_ENGINE_HPP
 
+#include <functional>
 #include <string>
 #include <thread>
 #include <mutex>
@@ -9,9 +10,14 @@
 #include <condition_variable>
 #include <unistd.h>
 #include <fcntl.h>
+#include "json.hpp"
+
+#ifndef WINDOWS
 #include <sys/select.h>
 #include <sys/wait.h>
-#include "json.hpp"
+#else
+#include <windows.h>
+#endif
 
 struct KataGoEvaluation {
     double score;
@@ -20,10 +26,18 @@ struct KataGoEvaluation {
 
 class KataGoEngine {
 private:
+
+#ifndef WINDOWS
     int inWriteFd = -1;
     int outReadFd = -1;
     pid_t childPid = -1;
+#else
+    HANDLE hChildStdinWr = NULL;
+    HANDLE hChildStdoutRd = NULL;
+    PROCESS_INFORMATION pi{};
+#endif
 
+    bool is_init_failure = false;
     std::thread readerThread;
     std::atomic<bool> running{true};
 
@@ -32,22 +46,31 @@ private:
     std::queue<nlohmann::json> messageQueue;
 
     void readerLoop();
-    void startProcess(const std::string&, const std::string&, const std::string&);
+    void startProcess(
+        const std::string& katagoPath,
+        const std::string& configPath,
+        const std::string& modelPath
+    );
+
+    nlohmann::json getJSON();
 
 public:
-    KataGoEngine(const std::string& katagoPath,
-                 const std::string& configPath,
-                 const std::string& modelPath);
+    KataGoEngine(
+        const std::string& katagoPath,
+        const std::string& configPath,
+        const std::string& modelPath,
+        std::function<void(bool)> init_callback
+    );
 
     ~KataGoEngine();
 
     void sendJSON(const nlohmann::json& j);
 
-    nlohmann::json getJSON();
+    std::optional<std::vector<std::string>>
+        getNextMove (int topN = 1);
 
-    std::vector<std::string> getNextMove (int topN = 1);
-    KataGoEvaluation getEvaluation ();
-
+    std::optional<KataGoEvaluation>
+        getEvaluation ();
 };
 
 #endif
