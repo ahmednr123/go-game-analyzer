@@ -1,6 +1,7 @@
 #include "draw.hpp"
 #include "SDL3/SDL_error.h"
 #include "base.hpp"
+#include "theme.hpp"
 #include <SDL3/SDL_pixels.h>
 
 void GoDrawHelper::DrawError(SDL_Renderer *renderer, TTF_TextEngine* text_engine, TTF_Font* font, GoError error, std::pair<int, int> window_size) {
@@ -15,7 +16,7 @@ void GoDrawHelper::DrawError(SDL_Renderer *renderer, TTF_TextEngine* text_engine
         return;
     }
 
-    // Draw transparent backgroun
+    // Draw transparent background
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180);
     SDL_FRect bg_rect = {
         0,0,
@@ -103,12 +104,16 @@ void GoDrawHelper::DrawStone (SDL_Renderer* renderer, GoBoardInfo board, GoStone
     float x = board.inner_x + stone.x * board.inner_gap;
     float y = board.inner_y + stone.y * board.inner_gap;
 
-    if (stone.turn == GoTurn::BLACK)
-        SDL_SetRenderDrawColor(renderer, 50, 50, 50, alpha);
-    else
-        SDL_SetRenderDrawColor(renderer, 200, 200, 200, alpha);
+    GoTheme theme = GoThemeHandler::getTheme();
+    if (stone.turn == GoTurn::BLACK) {
+        SDL_Color color = theme.black_color;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+    } else {
+        SDL_Color color = theme.white_color;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+    }
 
-    DrawFilledCircle(renderer, x, y, board.inner_gap/2 - 5);
+    DrawFilledCircle(renderer, x, y, board.inner_gap/2);
 }
 
 void GoDrawHelper::DrawStone (SDL_Renderer* renderer, GoBoardInfo board, GoStone stone) {
@@ -139,12 +144,16 @@ void GoDrawHelper::DrawStraightLine(SDL_Renderer *renderer, float ax, float ay, 
 }
 
 void GoDrawHelper::DrawOwnershipCell (SDL_Renderer* renderer, GoBoardInfo board, std::pair<int, int> cell, double value) {
+    GoTheme theme = GoThemeHandler::getTheme();
+
     float size = 0;
     if (value < 0) {
-        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        SDL_Color color = theme.white_color;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
         size = (value * -1) * (board.inner_gap * 0.5);
     } else if (value > 0) {
-        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_Color color = theme.black_color;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
         size = value * (board.inner_gap * 0.5);
     }
 
@@ -157,20 +166,24 @@ void GoDrawHelper::DrawOwnershipCell (SDL_Renderer* renderer, GoBoardInfo board,
 }
 
 void GoDrawHelper::DrawBoard(SDL_Renderer *renderer, GoBoardInfo board) {
-    SDL_SetRenderDrawColor(renderer, 186, 107, 58, 255);
+    GoTheme theme = GoThemeHandler::getTheme();
+
+    SDL_Color board_color = theme.board_color;
+    SDL_SetRenderDrawColor(renderer, board_color.r, board_color.g, board_color.b, 255);
     SDL_FRect rect = { board.x, board.y, board.size, board.size };
     SDL_RenderFillRect(renderer, &rect);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_Color board_line_color = theme.board_line_color;
+    SDL_SetRenderDrawColor(renderer, board_line_color.r, board_line_color.g, board_line_color.b, 255);
 
     int board_dim = static_cast<int>(board.dim);
 
-    for (int i = 0; i <= board_dim; i++) {
+    for (int i = 0; i < board_dim; i++) {
         float dx = board.inner_x + (board.inner_gap * i);
         DrawStraightLine(renderer, dx, board.inner_y, dx, board.inner_y + board.inner_size);
     }
 
-    for (int i = 0; i <= board_dim; i++) {
+    for (int i = 0; i < board_dim; i++) {
         float dy = board.inner_y + (board.inner_gap * i);
         DrawStraightLine(renderer, board.inner_x, dy, board.inner_x + board.inner_size, dy);
     }
@@ -179,7 +192,7 @@ void GoDrawHelper::DrawBoard(SDL_Renderer *renderer, GoBoardInfo board) {
     for (auto dot : dots) {
         float dx = board.inner_x + (board.inner_gap * dot[0]) + 0.5;
         float dy = board.inner_y + (board.inner_gap * dot[1]) + 0.5;
-        DrawFilledCircle(renderer, dx, dy, 3);
+        DrawFilledCircle(renderer, dx, dy, board.inner_gap*0.1f);
     }
 }
 
@@ -187,7 +200,7 @@ void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, TTF_Font* font, SDL_Co
     TTF_SetFontSize(font, font_size);
     TTF_Text *text = TTF_CreateText(text_engine, font, str.c_str(), str.size());
 
-    TTF_SetTextColor(text, col.r, col.g, col.b, col.a);
+    TTF_SetTextColor(text, col.r, col.g, col.b, 255);
     DrawText(text_engine, point, text, align);
     TTF_DestroyText(text);
 }

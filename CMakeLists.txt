@@ -21,6 +21,7 @@ set(SOURCES
     src/config.cpp
     src/sound.cpp
     src/error.cpp
+    src/theme.cpp
 )
 
 set(HEADERS
@@ -40,6 +41,7 @@ set(HEADERS
     src/katago_settings.hpp
     src/config.hpp
     src/sound.hpp
+    src/theme.hpp
 )
 
 add_executable(MCE ${SOURCES} ${HEADERS})
@@ -88,12 +90,17 @@ if (MINGW)
         COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:MCE>/assets/fonts
         COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:MCE>/assets/themes
+        COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:MCE>/assets/sound
         COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:MCE>/assets/music
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
             $<TARGET_FILE_DIR:MCE>/assets/fonts
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/assets/themes/*
+            $<TARGET_FILE_DIR:MCE>/assets/themes
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/assets/sound/*
             $<TARGET_FILE_DIR:MCE>/assets/sound
@@ -147,12 +154,17 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E make_directory
         $<TARGET_FILE_DIR:MCE>/assets/fonts
     COMMAND ${CMAKE_COMMAND} -E make_directory
+        $<TARGET_FILE_DIR:MCE>/assets/themes
+    COMMAND ${CMAKE_COMMAND} -E make_directory
         $<TARGET_FILE_DIR:MCE>/assets/sound
     COMMAND ${CMAKE_COMMAND} -E make_directory
         $<TARGET_FILE_DIR:MCE>/assets/music
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
         $<TARGET_FILE_DIR:MCE>/assets/fonts
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/assets/themes/*
+        $<TARGET_FILE_DIR:MCE>/assets/themes
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/assets/sound/*
         $<TARGET_FILE_DIR:MCE>/assets/sound

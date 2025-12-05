@@ -1,7 +1,9 @@
 #ifndef GO_UTILS_H
 #define GO_UTILS_H
 
+#include "SDL3/SDL_pixels.h"
 #include "base.hpp"
+#include <iostream>
 #include <optional>
 #include <random>
 #include <string>
@@ -63,6 +65,41 @@ getCurrentMillis () {
     auto duration_since_epoch = now.time_since_epoch();
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch);
     return milliseconds.count();
+}
+
+inline std::optional<SDL_Color>
+hexToSDLColor(const std::string& hexCode) {
+    SDL_Color color;
+    color.a = 1.0; // Default alpha to 1.0 (fully opaque)
+
+    std::string cleanHex = hexCode;
+    if (cleanHex[0] == '#') {
+        cleanHex = cleanHex.substr(1); // Remove '#' prefix
+    }
+
+    // #RRGGBB format
+    if (cleanHex.length() == 6) {
+        color.r = std::stoi(cleanHex.substr(0, 2), nullptr, 16);
+        color.g = std::stoi(cleanHex.substr(2, 2), nullptr, 16);
+        color.b = std::stoi(cleanHex.substr(4, 2), nullptr, 16);
+    }
+
+    // #RRGGBBAA format
+    else if (cleanHex.length() == 8) {
+        color.r = std::stoi(cleanHex.substr(0, 2), nullptr, 16);
+        color.g = std::stoi(cleanHex.substr(2, 2), nullptr, 16);
+        color.b = std::stoi(cleanHex.substr(4, 2), nullptr, 16);
+        int alphaHex = std::stoi(cleanHex.substr(6, 2), nullptr, 16);
+        color.a = static_cast<double>(alphaHex) / 255.0;
+    }
+
+    // Invalid format
+    else {
+        std::cerr << "Invalid hex code length: " << hexCode << std::endl;
+        return std::nullopt;
+    }
+
+    return std::make_optional(color);
 }
 
 #endif

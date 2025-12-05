@@ -51,11 +51,6 @@ class GoErrorHandler {
 public:
     static void init () {
         error_packets = {};
-
-        std::cout << static_cast<int>(GoErrorSeverity::DEBUG) << std::endl;
-        std::cout << static_cast<int>(GoErrorSeverity::RECOVERABLE) << std::endl;
-        std::cout << static_cast<int>(GoErrorSeverity::UNRECOVERABLE) << std::endl;
-        std::cout << static_cast<int>(GoErrorSeverity::WARNING) << std::endl;
     }
 
     static void throwError(GoErrorEnum error) {

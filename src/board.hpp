@@ -20,6 +20,7 @@ private:
     int window_w, window_h;
     GoBoardSize dim;
 
+    bool show_text = true;
     bool auto_switch_flag = true;
     GoTurn turn = GoTurn::BLACK;
 

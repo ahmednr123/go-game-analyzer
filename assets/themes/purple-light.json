@@ -1,0 +1,9 @@
+{
+    "background":   "#F3E2FF",
+    "board":        "#B369CB",
+    "board_line":   "#501A73",
+    "black_piece":  "#501A73",
+    "white_piece":  "#FBE3FF",
+    "text":         "#501A73",
+    "text_error":   "#DF4343"
+}

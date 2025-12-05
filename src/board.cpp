@@ -6,6 +6,7 @@
 #include "katago.hpp"
 #include "sound.hpp"
 #include "state.hpp"
+#include "theme.hpp"
 #include "utils.hpp"
 #include "rules.hpp"
 #include <SDL3/SDL_events.h>
@@ -130,6 +131,10 @@ void GoBoard::handleEvent(SDL_Event* event, const std::vector<GoError>& errors) 
 
             if (key_event.scancode == SDL_SCANCODE_M) {
                 GoSound::toggleMusic();
+            } else if (key_event.scancode == SDL_SCANCODE_T) {
+                GoThemeHandler::nextTheme();
+            } else if (key_event.scancode == SDL_SCANCODE_S) {
+                this->show_text = !this->show_text;
             } else if (key_event.scancode == SDL_SCANCODE_V) {
                 this->view_ownership = false;
             } else if (key_event.scancode == SDL_SCANCODE_C) {
@@ -283,82 +288,99 @@ std::string getCapturesString (int black_captures, int white_captures) {
 }
 
 void GoBoard::renderUI () {
-    std::string auto_switch = "Auto Switch: ";
-    auto_switch += auto_switch_flag ? "True" : "False";
-    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y - 20}, auto_switch, 12);
+    GoTheme theme = GoThemeHandler::getTheme();
 
-    if (!katago.isInitialized()) {
-        GoDrawHelper::DrawText(
-            text_engine, font, RED_COLOR,
-            {board.x + (board.size/2), board.y - 20},
-            "[Engine not found]", 12, GoTextAlign::MIDDLE_ALIGN
-        );
-    } else if (katago.isInitialized() && katago.isBusy()) {
-        GoDrawHelper::DrawText(
-            text_engine, font, RED_COLOR,
-            {board.x + (board.size/2), board.y - 20},
-            "[Engine Busy]", 12, GoTextAlign::MIDDLE_ALIGN
-        );
-    } else if (katago.isInitialized()){
-        std::string diff_levels = " 5  4  3  2  1 ";
-        int diff_lvl = this->katago.getDiffLevel();
-        diff_levels[(5-diff_lvl)*3] = '[';
-        diff_levels[(5-diff_lvl)*3 + 2] = ']';
+    std::pair<int, int> top_left = {board.x, board.y - 20};
+    std::pair<int, int> top_center = {board.x + (board.size/2), board.y - 20};
+    std::pair<int, int> top_right = {board.x + board.size, board.y - 20};
 
-        GoDrawHelper::DrawText(
-            text_engine, font, OFF_WHITE_COLOR,
-            {board.x + (board.size/2), board.y - 20},
-            diff_levels, 12, GoTextAlign::MIDDLE_ALIGN
-        );
+    std::pair<int, int> bottom_left = {board.x, board.y + board.size + 6};
+    std::pair<int, int> bottom_center = {board.x + (board.size/2), board.y + board.size + 6};
+    std::pair<int, int> bottom_right = {board.x + board.size, board.y + board.size + 6};
+
+    if (theme.hidden_board) {
+        int piece_radius = board.inner_gap*0.65;
+
+        top_left = {board.inner_x, board.y};
+        top_center.second = board.y;
+        top_right = {board.inner_x + board.inner_size, board.y};
+
+        bottom_left = {board.inner_x, board.y + board.size - 10};
+        bottom_center.second = board.y + board.size - 10;
+        bottom_right = {board.inner_x + board.inner_size, board.y + board.size - 10};
     }
 
-    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x + board.size, board.y - 20},
-            turn == GoTurn::WHITE ? "White to play" : "Black to play", 12, GoTextAlign::RIGHT_ALIGN);
+    if (this->show_text) {
+        std::string auto_switch = "Auto Switch: ";
+        auto_switch += auto_switch_flag ? "True" : "False";
+        GoDrawHelper::DrawText(text_engine, font, theme.text_color, top_left, auto_switch, 12);
 
-    std::string captures = getCapturesString(state->getCaptures(GoTurn::BLACK), state->getCaptures(GoTurn::WHITE));
-    GoDrawHelper::DrawText(text_engine, font, OFF_WHITE_COLOR, {board.x, board.y + board.size + 6}, captures, 12);
-
-    if (this->state->getComputed().isGameEnded()) {
-        GoDrawHelper::DrawText(
-            text_engine, font, RED_COLOR,
-            {board.x + (board.size/2), board.y + board.size + 6},
-            "[GAME ENDED]",
-            12, GoTextAlign::MIDDLE_ALIGN
-        );
-    } else {
-        std::optional<GoTurn> in_pass = this->state->getComputed().inPass();
-        if (in_pass.has_value()) {
+        if (!katago.isInitialized()) {
             GoDrawHelper::DrawText(
-                text_engine, font, OFF_WHITE_COLOR,
-                {board.x + (board.size/2), board.y + board.size + 6},
-                in_pass.value() == GoTurn::WHITE ? "White Passes" : "Black Passes",
-                12, GoTextAlign::MIDDLE_ALIGN
+                text_engine, font, theme.error_text_color, top_center,
+                "[Engine not found]", 12, GoTextAlign::MIDDLE_ALIGN
+            );
+        } else if (katago.isInitialized() && katago.isBusy()) {
+            GoDrawHelper::DrawText(
+                text_engine, font, theme.error_text_color, top_center,
+                "[Engine Busy]", 12, GoTextAlign::MIDDLE_ALIGN
+            );
+        } else if (katago.isInitialized()){
+            std::string diff_levels = " 5  4  3  2  1 ";
+            int diff_lvl = this->katago.getDiffLevel();
+            diff_levels[(5-diff_lvl)*3] = '[';
+            diff_levels[(5-diff_lvl)*3 + 2] = ']';
+
+            GoDrawHelper::DrawText(
+                text_engine, font, theme.text_color, top_center,
+                diff_levels, 12, GoTextAlign::MIDDLE_ALIGN
+            );
+        }
+
+        GoDrawHelper::DrawText(text_engine, font, theme.text_color, top_right,
+                turn == GoTurn::WHITE ? "White to play" : "Black to play", 12, GoTextAlign::RIGHT_ALIGN);
+
+        std::string captures = getCapturesString(state->getCaptures(GoTurn::BLACK), state->getCaptures(GoTurn::WHITE));
+        GoDrawHelper::DrawText(text_engine, font, theme.text_color, bottom_left, captures, 12);
+
+        if (!this->state->getComputed().isGameEnded()) {
+            std::optional<GoTurn> in_pass = this->state->getComputed().inPass();
+            if (in_pass.has_value()) {
+                GoDrawHelper::DrawText(
+                    text_engine, font, theme.text_color, bottom_center,
+                    in_pass.value() == GoTurn::WHITE ? "White Passes" : "Black Passes",
+                    12, GoTextAlign::MIDDLE_ALIGN
+                );
+            }
+        }
+
+        if (katago.isInitialized()) {
+            std::string score = "B+0";
+            if (katago_evaluation.score > 0) {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2) << katago_evaluation.score;
+                score = "B+" + oss.str();
+            } else if (katago_evaluation.score < 0) {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2) << (katago_evaluation.score * -1);
+                score = "W+" + oss.str();
+            }
+            GoDrawHelper::DrawText(
+                text_engine, font, theme.text_color, bottom_right,
+                score, 12, GoTextAlign::RIGHT_ALIGN
+            );
+        } else {
+            GoDrawHelper::DrawText(
+                text_engine, font, theme.text_color, bottom_right,
+                "[Needs KataGo]", 12, GoTextAlign::RIGHT_ALIGN
             );
         }
     }
 
-    if (katago.isInitialized()) {
-        std::string score = "B+0";
-        if (katago_evaluation.score > 0) {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << katago_evaluation.score;
-            score = "B+" + oss.str();
-        } else if (katago_evaluation.score < 0) {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << (katago_evaluation.score * -1);
-            score = "W+" + oss.str();
-        }
+    if (this->state->getComputed().isGameEnded()) {
         GoDrawHelper::DrawText(
-            text_engine, font, OFF_WHITE_COLOR,
-            {board.x + board.size, board.y + board.size + 6},
-            score, 12, GoTextAlign::RIGHT_ALIGN
-        );
-    } else {
-        GoDrawHelper::DrawText(
-            text_engine, font, OFF_WHITE_COLOR,
-            {board.x + board.size, board.y + board.size + 6},
-            "[Needs KataGo]", 12, GoTextAlign::RIGHT_ALIGN
+            text_engine, font, theme.error_text_color, bottom_center,
+            "[GAME ENDED]", 12, GoTextAlign::MIDDLE_ALIGN
         );
     }
-
 }
