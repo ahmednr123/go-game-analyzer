@@ -97,7 +97,14 @@ void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
     }, go_move);
 }
 
-void GoBoard::handleEvent(SDL_Event* event) {
+void GoBoard::handleEvent(SDL_Event* event, const std::vector<GoError>& errors) {
+    std::optional<GoErrorSeverity> error_severity_opt =
+        GoErrorHandler::getErrorSeverity(errors);
+    if (error_severity_opt.has_value()
+            && error_severity_opt.value() <= GoErrorSeverity::UNRECOVERABLE) {
+        return;
+    }
+
     switch (event->type) {
         case SDL_EVENT_KEY_DOWN: {
             SDL_KeyboardEvent key_event = event->key;
@@ -114,6 +121,11 @@ void GoBoard::handleEvent(SDL_Event* event) {
                 if (key_event.scancode == SDL_SCANCODE_R) {
                     this->state->clear();
                 }
+            }
+
+            if (error_severity_opt.has_value()
+                    && error_severity_opt.value() >= GoErrorSeverity::RECOVERABLE) {
+                break;
             }
 
             if (key_event.scancode == SDL_SCANCODE_M) {
@@ -167,6 +179,8 @@ void GoBoard::handleEvent(SDL_Event* event) {
                     auto go_move_opt = this->katago.nextNMoves(this->state->getActionsWithUndo(), 1);
                     if (go_move_opt.has_value()) {
                         this->handleGoMove(go_move_opt.value());
+                    } else {
+                        GoErrorHandler::throwError(GoErrorEnum::ENGINE_NOT_FOUND);
                     }
                 }
             } else if (key_event.scancode == SDL_SCANCODE_5) {
@@ -183,6 +197,11 @@ void GoBoard::handleEvent(SDL_Event* event) {
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_UP: {
+            if (error_severity_opt.has_value()
+                    && error_severity_opt.value() >= GoErrorSeverity::RECOVERABLE) {
+                break;
+            }
+
             SDL_MouseButtonEvent mouse_event = event->button;
             if (mouse_event.button == SDL_BUTTON_LEFT) {
                 std::optional<std::pair<int, int>> point_opt =

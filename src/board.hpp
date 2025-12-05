@@ -39,7 +39,7 @@ public:
     void handleGoMove (std::variant<GoStone, GoTurn> go_move);
 
     void render();
-    void handleEvent(SDL_Event* event);
+    void handleEvent(SDL_Event* event, const std::vector<GoError>& errors);
     void renderUI();
 };
 

@@ -20,6 +20,7 @@ set(SOURCES
     src/katago_engine.cpp
     src/config.cpp
     src/sound.cpp
+    src/error.cpp
 )
 
 set(HEADERS

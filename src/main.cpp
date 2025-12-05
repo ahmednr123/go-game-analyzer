@@ -12,6 +12,8 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_ttf/SDL_textengine.h>
 #include "config.hpp"
+#include "draw.hpp"
+#include "error.hpp"
 #include "sound.hpp"
 #include "test.hpp"
 
@@ -21,6 +23,7 @@ int main(int argc, char **argv) {
     }
 
     GoGameConfig::init("./config.json");
+    GoErrorHandler::init();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         std::cerr << "Init error : " << SDL_GetError() << std::endl;
@@ -83,6 +86,12 @@ int main(int argc, char **argv) {
     board.setupTextEngine(text_engine, font);
 
     while (isRunning) {
+        std::vector<GoError> errors = GoErrorHandler::getErrors();
+
+        // Clear screen
+        SDL_SetRenderDrawColor(renderer, 20, 20, 25, 255);
+        SDL_RenderClear(renderer);
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
@@ -90,12 +99,8 @@ int main(int argc, char **argv) {
                 continue;
             }
 
-            board.handleEvent(&event);
+            board.handleEvent(&event, errors);
         }
-
-        // Clear screen
-        SDL_SetRenderDrawColor(renderer, 20, 20, 25, 255);
-        SDL_RenderClear(renderer);
 
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
@@ -104,6 +109,14 @@ int main(int argc, char **argv) {
         board.render();
 
         board.renderUI();
+
+        for (GoError error : errors) {
+            GoDrawHelper::DrawError(
+                renderer,
+                text_engine, font,
+                error, {w, h}
+            );
+        }
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS

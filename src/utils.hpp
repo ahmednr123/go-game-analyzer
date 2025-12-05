@@ -6,6 +6,8 @@
 #include <random>
 #include <string>
 #include <utility>
+#include <chrono>
+
 inline bool isPointInCircle(
     float px, float py,
     float cx, float cy,
@@ -37,7 +39,7 @@ getBoardCellFromPoint (GoBoardInfo board, float px, float py) {
 }
 
 inline  std::string
-genRandomString(int length) {
+genRandomString (int length) {
     const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     std::random_device rd;
@@ -53,6 +55,14 @@ genRandomString(int length) {
     }
 
     return randomString;
+}
+
+inline long
+getCurrentMillis () {
+    auto now = std::chrono::system_clock::now();
+    auto duration_since_epoch = now.time_since_epoch();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch);
+    return milliseconds.count();
 }
 
 #endif

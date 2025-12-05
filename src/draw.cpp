@@ -1,6 +1,67 @@
 #include "draw.hpp"
+#include "SDL3/SDL_error.h"
 #include "base.hpp"
 #include <SDL3/SDL_pixels.h>
+
+void GoDrawHelper::DrawError(SDL_Renderer *renderer, TTF_TextEngine* text_engine, TTF_Font* font, GoError error, std::pair<int, int> window_size) {
+    // Create wrapped surface
+    TTF_SetFontSize(font, 18);
+    SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(
+        font, error.message.c_str(), error.message.size(), {255,255,255,255}, ERROR_TEXT_MAX_WIDTH
+    );
+
+    if (!surface) {
+        SDL_Log("TTF_RenderText_Blended_Wrapped error: %s", SDL_GetError());
+        return;
+    }
+
+    // Draw transparent backgroun
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180);
+    SDL_FRect bg_rect = {
+        0,0,
+        (float)window_size.first,
+        (float)window_size.second
+    };
+    SDL_RenderFillRect(renderer, &bg_rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 180);
+
+    float m_x = window_size.first/2.f;
+    float m_y = window_size.second/2.f;
+
+    // Draw bigger rectangle
+    int rect_w = surface->w + 2*30;
+    int rect_h = surface->h + 2*30;
+
+    SDL_FRect rect = {
+        m_x - rect_w/2.f,
+        m_y - rect_h/2.f,
+        (float)rect_w,
+        static_cast<float>(rect_h)
+    };
+    SDL_RenderFillRect(renderer, &rect);
+
+    // Draw Text
+    // Convert to texture
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture) {
+        SDL_Log("SDL_CreateTextureFromSurface error: %s", SDL_GetError());
+        SDL_DestroySurface(surface);
+        return;
+    }
+
+    SDL_FRect dst = {
+        m_x - surface->w/2.f,
+        m_y - surface->h/2.f,
+        (float)surface->w,
+        (float)surface->h
+    };
+
+    SDL_RenderTexture(renderer, texture, NULL, &dst);
+
+    SDL_DestroyTexture(texture);
+    SDL_DestroySurface(surface);
+}
 
 void GoDrawHelper::DrawFilledCircle(SDL_Renderer *renderer, int cx, int cy, int radius) {
     for (int dy = -radius; dy <= radius; dy++) {
@@ -126,11 +187,15 @@ void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, TTF_Font* font, SDL_Co
     TTF_SetFontSize(font, font_size);
     TTF_Text *text = TTF_CreateText(text_engine, font, str.c_str(), str.size());
 
+    TTF_SetTextColor(text, col.r, col.g, col.b, col.a);
+    DrawText(text_engine, point, text, align);
+    TTF_DestroyText(text);
+}
+
+void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, std::pair<int, int> point, TTF_Text *text, GoTextAlign align) {
     int w, h;
     TTF_GetTextSize(text, &w, &h);
 
-    //TTF_SetTextColor(text, 200, 200, 200, 255);
-    TTF_SetTextColor(text, col.r, col.g, col.b, col.a);
     if (align == GoTextAlign::LEFT_ALIGN) {
         TTF_DrawRendererText(text, point.first, point.second);
     } else if (align == GoTextAlign::MIDDLE_ALIGN) {
@@ -138,7 +203,5 @@ void GoDrawHelper::DrawText (TTF_TextEngine* text_engine, TTF_Font* font, SDL_Co
     } else if (align == GoTextAlign::RIGHT_ALIGN) {
         TTF_DrawRendererText(text, point.first - w, point.second);
     }
-
-    TTF_DestroyText(text);
 }
 
