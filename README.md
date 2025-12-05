@@ -27,11 +27,13 @@ Todo:
 - ~~BUG: Use threads for AI responses (callback hangs rendering)~~
 - ~~Add sound effects & music~~
 - ~~Windows code to handle KataGo communication~~
+- ~~Display error and stop rendering if any error is prompted~~
+- ~~Add theme functionality~~
 - Handle Ko situation (repeating board position is not allowed)
-- Display error and stop rendering if any error is prompted
-- Add theme functionality
 - Let AI play from the current turn (Switch to "moves" & "initialMoves")
+- Bundle with KataGo
 
 Next Release:
+- Saving and loading game states
 - Finding dead groups and show moves that lead to group death
 - Find mistakes and point whats the aftermath
