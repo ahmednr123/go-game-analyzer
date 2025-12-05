@@ -12,8 +12,11 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_ttf/SDL_textengine.h>
 #include "config.hpp"
+#include "draw.hpp"
+#include "error.hpp"
 #include "sound.hpp"
 #include "test.hpp"
+#include "theme.hpp"
 
 int main(int argc, char **argv) {
     if (!isTestPassed()) {
@@ -21,6 +24,8 @@ int main(int argc, char **argv) {
     }
 
     GoGameConfig::init("./config.json");
+    GoErrorHandler::init();
+    GoThemeHandler::init();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         std::cerr << "Init error : " << SDL_GetError() << std::endl;
@@ -73,16 +78,28 @@ int main(int argc, char **argv) {
         std::cerr << "Music files loading failed: " << SDL_GetError() << "\n";
     }
 
+    if (!GoThemeHandler::loadThemes()) {
+        std::cerr << "Themes loading failed: " << SDL_GetError() << "\n";
+    }
+
     bool isRunning = true;
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
-    GoBoard board(renderer, w, h, GoBoardSize::_9x9);
-    board.setupTextEngine(text_engine, font);
+    GoBoard* board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
+    board->setupTextEngine(text_engine, font);
 
     while (isRunning) {
+        GoTheme theme = GoThemeHandler::getTheme();
+        std::vector<GoError> errors = GoErrorHandler::getErrors();
+
+        // Clear screen
+        SDL_Color bg_color = theme.bg_color;
+        SDL_SetRenderDrawColor(renderer, bg_color.r, bg_color.g, bg_color.b, 255);
+        SDL_RenderClear(renderer);
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
@@ -90,20 +107,41 @@ int main(int argc, char **argv) {
                 continue;
             }
 
-            board.handleEvent(&event);
-        }
+            SDL_KeyboardEvent key_event = event.key;
+            if (key_event.mod & SDL_KMOD_SHIFT) {
+                if (key_event.scancode == SDL_SCANCODE_1) {
+                    delete board;
+                    board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
+                    board->setupTextEngine(text_engine, font);
+                } else if (key_event.scancode == SDL_SCANCODE_2) {
+                    delete board;
+                    board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
+                    board->setupTextEngine(text_engine, font);
+                } else if (key_event.scancode == SDL_SCANCODE_3) {
+                    delete board;
+                    board = new GoBoard(renderer, w, h, GoBoardSize::_19x19);
+                    board->setupTextEngine(text_engine, font);
+                }
+            }
 
-        // Clear screen
-        SDL_SetRenderDrawColor(renderer, 20, 20, 25, 255);
-        SDL_RenderClear(renderer);
+            board->handleEvent(&event, errors);
+        }
 
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
 
-        board.updateBoardInfo(w, h);
-        board.render();
+        board->updateBoardInfo(w, h);
+        board->render();
 
-        board.renderUI();
+        board->renderUI();
+
+        for (GoError error : errors) {
+            GoDrawHelper::DrawError(
+                renderer,
+                text_engine, font,
+                error, {w, h}
+            );
+        }
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS

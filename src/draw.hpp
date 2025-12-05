@@ -1,6 +1,7 @@
 #ifndef GO_DRAW_H
 #define GO_DRAW_H
 
+#include "error.hpp"
 #ifdef DrawText
 #undef DrawText
 #endif
@@ -15,8 +16,16 @@
 #include <cmath>
 #include <string>
 
+#define ERROR_TEXT_MAX_WIDTH 500
+
 class GoDrawHelper {
 public:
+    static void DrawError (
+        SDL_Renderer *renderer,
+        TTF_TextEngine* text_engine,
+        TTF_Font* font, GoError error,
+        std::pair<int, int> window_size
+    );
     static void DrawFilledCircle(SDL_Renderer* renderer, int cx, int cy, int radius);
     static void DrawOutlinedCircle(SDL_Renderer* renderer, int cx, int cy, int radius);
     static void DrawStone (SDL_Renderer* renderer, GoBoardInfo board, GoStone stone, int alpha);
@@ -25,6 +34,12 @@ public:
     static void DrawStraightLine (SDL_Renderer* renderer, float ax, float ay, float bx, float by);
     static void DrawOwnershipCell (SDL_Renderer* renderer, GoBoardInfo board, std::pair<int, int> cell, double value);
     static void DrawBoard (SDL_Renderer* renderer, GoBoardInfo board);
+    static void DrawText (
+        TTF_TextEngine* text_engine,
+        std::pair<int, int> point,
+        TTF_Text *text,
+        GoTextAlign align = GoTextAlign::LEFT_ALIGN
+    );
     static void DrawText (
         TTF_TextEngine* text_engine,
         TTF_Font* font, SDL_Color col,

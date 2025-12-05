@@ -20,6 +20,7 @@ private:
     int window_w, window_h;
     GoBoardSize dim;
 
+    bool show_text = true;
     bool auto_switch_flag = true;
     GoTurn turn = GoTurn::BLACK;
 
@@ -39,7 +40,7 @@ public:
     void handleGoMove (std::variant<GoStone, GoTurn> go_move);
 
     void render();
-    void handleEvent(SDL_Event* event);
+    void handleEvent(SDL_Event* event, const std::vector<GoError>& errors);
     void renderUI();
 };
 
