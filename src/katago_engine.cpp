@@ -1,11 +1,20 @@
 #include "katago_engine.hpp"
 #include <SDL3/SDL_log.h>
 #include <filesystem>
-#include <iostream>
 #include <cmath>
 #include <optional>
 
 using json = nlohmann::json;
+
+bool doesKataGoExist (std::string katago_path) {
+#ifndef WINDOWS
+    std::string cmd = "command -v " + katago_path + " /dev/null 2>&1";
+#else
+    std::string cmd = "where " + katago_path + " > nul 2>&1";
+#endif
+
+    return system(cmd.c_str()) == 0;
+}
 
 #ifndef WINDOWS
 static void setNonBlocking(int fd) {
@@ -20,12 +29,21 @@ KataGoEngine::KataGoEngine(
     const std::string& modelPath,
     std::function<void(bool)> init_callback
 ) {
-    if (!std::filesystem::exists(katagoPath)) {
+    if (!doesKataGoExist(katagoPath)) {
         is_init_failure = true;
         init_callback(is_init_failure);
-    } else {
-        startProcess(katagoPath, configPath, modelPath);
+        return;
     }
+
+    if (!std::filesystem::exists(configPath)
+            || !std::filesystem::exists(modelPath)
+    ) {
+        is_init_failure = true;
+        init_callback(is_init_failure);
+        return;
+    }
+
+    startProcess(katagoPath, configPath, modelPath);
     readerThread = std::thread(&KataGoEngine::readerLoop, this);
 }
 
@@ -131,7 +149,7 @@ void KataGoEngine::startProcess(
     );
 
     if (!ok) {
-        std::cerr << "CreateProcess failed\n";
+        SDL_Log("CreateProcess failed");
         exit(1);
     }
 
@@ -256,10 +274,11 @@ KataGoEngine::getNextMove(int topN) {
         // Bad json
     }
 
-    return std::make_optional<std::vector<std::string>>({
-        msg["rootInfo"]["currentPlayer"],
-        msg["moveInfos"][0]["move"]
-    });
+    std::vector<std::string> move(2);
+    move[0] = msg["rootInfo"]["currentPlayer"];
+    move[1] = msg["moveInfos"][0]["move"];
+
+    return std::make_optional<std::vector<std::string>>(move);
 }
 
 std::optional<KataGoEvaluation>
@@ -281,6 +300,8 @@ KataGoEngine::getEvaluation () {
         int y = i%board_size;
         ownership[x][y] = msg["ownership"][i];
     }
+
+    KataGoEvaluation eval;
 
     return std::make_optional<KataGoEvaluation>({msg["rootInfo"]["scoreLead"], ownership});
 }

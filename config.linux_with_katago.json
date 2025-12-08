@@ -1,0 +1,5 @@
+{
+    "katago_path": "./assets/KataGo/katago",
+    "config_path": "./assets/KataGo/config/analysis_example.cfg",
+    "model_path": "./assets/KataGo/models/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz"
+}

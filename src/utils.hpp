@@ -99,7 +99,7 @@ hexToSDLColor(const std::string& hexCode) {
         return std::nullopt;
     }
 
-    return std::make_optional(color);
+    return std::make_optional<SDL_Color>(color);
 }
 
 #endif

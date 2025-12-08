@@ -17,9 +17,9 @@ enum class GoBoardCellState {
 
 inline std::optional<GoTurn> getTurnFromCellState (GoBoardCellState state) {
     if (state == GoBoardCellState::BLACK)
-        return std::make_optional(GoTurn::BLACK);
+        return std::make_optional<GoTurn>(GoTurn::BLACK);
     else if (state == GoBoardCellState::WHITE)
-        return std::make_optional(GoTurn::WHITE);
+        return std::make_optional<GoTurn>(GoTurn::WHITE);
 
     return std::nullopt;
 }

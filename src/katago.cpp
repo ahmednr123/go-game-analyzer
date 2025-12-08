@@ -10,6 +10,7 @@
 #include <cassert>
 #include <memory>
 #include <optional>
+#include <filesystem>
 
 std::vector<std::string> parseMove (json response) {
     return {
@@ -29,13 +30,13 @@ std::vector<std::vector<std::string>> getMoves (GoBoardSize size, std::vector<Go
                 using T = std::decay_t<decltype(action)>;
 
                 if constexpr (std::is_same_v<T, AddStoneAction>) {
-                    return std::make_optional(action.stone);
+                    return std::make_optional<GoStone>(action.stone);
                 }
                 else if constexpr (std::is_same_v<T, CaptureStonesAction>) {
-                    return std::make_optional(action.capturing_stone);
+                    return std::make_optional<GoStone>(action.capturing_stone);
                 }
                 else if constexpr (std::is_same_v<T, PassAction>) {
-                    return std::make_optional(action.turn);
+                    return std::make_optional<GoTurn>(action.turn);
                 }
 
                 return std::nullopt;
@@ -74,6 +75,8 @@ KataGo::KataGo(
     const std::string& model_path,
     GoBoardSize size
 ) {
+    namespace fs = std::filesystem;
+
     this->engine =
         std::unique_ptr<KataGoEngine>(
             new KataGoEngine(
@@ -86,6 +89,14 @@ KataGo::KataGo(
             )
         );
     this->size = size;
+
+    if (fs::exists(config_path)) {
+
+    }
+
+    if (fs::exists(config_path)) {
+
+    }
 }
 
 void KataGo::updateDiffLevel (int diff_lvl) {
@@ -126,11 +137,9 @@ KataGo::nextNMoves (
 
             if (next_move[1] != "pass") {
                 GoStone stone = katagoMoveToStone(this->size, next_move);
-                std::cout << "Move: " << next_move[0] << next_move[1] << ", x=" << stone.x << " y=" << stone.y << std::endl;
-                go_move_opt = std::make_optional(stone);
+                go_move_opt = std::make_optional<GoStone>(stone);
             } else {
-                std::cout << "Move: " << next_move[0] << " pass" << std::endl;
-                go_move_opt = std::make_optional(
+                go_move_opt = std::make_optional<GoTurn>(
                     next_move[0] == "B" ?
                         GoTurn::BLACK :
                         GoTurn::WHITE

@@ -7,6 +7,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CONFIG_TYPE "linux_raw" CACHE STRING "Which config file to use")
+message(STATUS "Using config for: ${CONFIG_TYPE}")
+
+set(BUILD_TYPE "linux" CACHE STRING "Which build type")
+message(STATUS "Building for: ${BUILD_TYPE}")
+
 # -----------------------------------------
 # Source files
 # -----------------------------------------
@@ -87,28 +93,11 @@ if (MINGW)
     # Copy assets
     add_custom_command(
         TARGET MCE POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:MCE>/assets/fonts
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:MCE>/assets/themes
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:MCE>/assets/sound
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:MCE>/assets/music
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:MCE>/assets
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
-            $<TARGET_FILE_DIR:MCE>/assets/fonts
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/assets/themes/*
-            $<TARGET_FILE_DIR:MCE>/assets/themes
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/assets/sound/*
-            $<TARGET_FILE_DIR:MCE>/assets/sound
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/assets/music/*
-            $<TARGET_FILE_DIR:MCE>/assets/music
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/config.windows.json
+            ${CMAKE_SOURCE_DIR}/config.${CONFIG_TYPE}.json
             $<TARGET_FILE_DIR:MCE>/config.json
     )
 
@@ -140,39 +129,32 @@ target_link_libraries(MCE PRIVATE
     freetype
 )
 
+if(BUILD_TYPE STREQUAL "linux")
 # Copy library files
-add_custom_command(
-    TARGET MCE POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/lib/linux/*
-        $<TARGET_FILE_DIR:MCE>
-)
+    add_custom_command(
+        TARGET MCE POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3.so.0.3.3
+            $<TARGET_FILE_DIR:MCE>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3_ttf.so.0.3.0
+            $<TARGET_FILE_DIR:MCE>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3_mixer.so.0.1.0
+            $<TARGET_FILE_DIR:MCE>
+    )
+
+    execute_process(COMMAND bash "${CMAKE_SOURCE_DIR}/scripts/generate-symlinks.sh"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
 
 # Copy assets
 add_custom_command(
     TARGET MCE POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-        $<TARGET_FILE_DIR:MCE>/assets/fonts
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-        $<TARGET_FILE_DIR:MCE>/assets/themes
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-        $<TARGET_FILE_DIR:MCE>/assets/sound
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-        $<TARGET_FILE_DIR:MCE>/assets/music
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:MCE>/assets
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/assets/fonts/Lexend.ttf
-        $<TARGET_FILE_DIR:MCE>/assets/fonts
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/assets/themes/*
-        $<TARGET_FILE_DIR:MCE>/assets/themes
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/assets/sound/*
-        $<TARGET_FILE_DIR:MCE>/assets/sound
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/assets/music/*
-        $<TARGET_FILE_DIR:MCE>/assets/music
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/config.macos-linux.json
+        ${CMAKE_SOURCE_DIR}/config.${CONFIG_TYPE}.json
         $<TARGET_FILE_DIR:MCE>/config.json
 )
-

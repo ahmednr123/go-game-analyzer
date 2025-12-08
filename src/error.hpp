@@ -25,6 +25,8 @@ enum class GoErrorEnum {
     ENGINE_NOT_FOUND,
     ENGINE_VERSION_MISMATCH,
     ENGINE_PARSE_ERROR,
+    ENGINE_CONFIG_FILE_NOT_FOUND,
+    ENGINE_MODEL_FILE_NOT_FOUND
 };
 
 struct GoError {
@@ -38,6 +40,8 @@ const std::unordered_map<GoErrorEnum, GoError> GO_ERRORS = {
     {GoErrorEnum::ENGINE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine not connected, please update path in config.json and restart"}},
     {GoErrorEnum::ENGINE_VERSION_MISMATCH, {GoErrorSeverity::WARNING, "Engine version mismatch, issues may occur. Use version: "}},
     {GoErrorEnum::ENGINE_PARSE_ERROR, {GoErrorSeverity::DEBUG, "Response from katago cannot be parsed properly."}},
+    {GoErrorEnum::ENGINE_CONFIG_FILE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine config file not found, Engine failed to load"}},
+    {GoErrorEnum::ENGINE_MODEL_FILE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine model file not found, Engine failed to load"}}
 };
 
 struct GoErrorPacket {
@@ -61,11 +65,11 @@ public:
         std::optional<GoErrorSeverity> severity = std::nullopt;
         for (GoError error : errors) {
             if (!severity.has_value()) {
-                severity = std::make_optional(error.severity);
+                severity = std::make_optional<GoErrorSeverity>(error.severity);
             }
 
             if (error.severity < severity.value()) {
-                severity = std::make_optional(error.severity);
+                severity = std::make_optional<GoErrorSeverity>(error.severity);
             }
         }
         return severity;

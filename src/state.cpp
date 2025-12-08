@@ -83,7 +83,7 @@ Result<bool, GoErrorEnum> GoBoardState::pass (GoTurn turn) {
 
                 if constexpr (std::is_same_v<T, PassAction>) {
                     GoTurn turn = action.turn;
-                    return std::make_optional(turn);
+                    return std::make_optional<GoTurn>(turn);
                 }
 
                 return std::nullopt;

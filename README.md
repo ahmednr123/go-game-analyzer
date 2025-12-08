@@ -34,6 +34,7 @@ Todo:
 - Bundle with KataGo
 
 Next Release:
+- Human like play using b18c384nbt-humanv0.bin.gz model
 - Saving and loading game states
-- Finding dead groups and show moves that lead to group death
+- Finding dead groups and show moves that lead to group death (promising: lifego_b18.bin.gz fine-tuned model)
 - Find mistakes and point whats the aftermath

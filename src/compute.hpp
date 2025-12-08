@@ -50,7 +50,7 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
                         if (state[stone.x][stone.y] == GoBoardCellState::EMPTY
                                 || !doesCellValidateStone(state[stone.x][stone.y], stone)
                         ){
-                            return std::make_optional(GoErrorEnum::BOARD_STATE_CORRUPT);
+                            return std::make_optional<GoErrorEnum>(GoErrorEnum::BOARD_STATE_CORRUPT);
                         }
 
                         state[stone.x][stone.y] = GoBoardCellState::EMPTY;
@@ -80,7 +80,7 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
         GoBoardStateComputed(
             state,
             passes.size() > 0 ?
-                std::make_optional(passes[0]) :
+                std::make_optional<GoTurn>(passes[0]) :
                 std::nullopt,
             is_game_ended
         )
