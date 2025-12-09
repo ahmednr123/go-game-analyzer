@@ -79,6 +79,13 @@ if (MINGW)
         freetype
     )
 
+    # ----- Static link libgcc, libstdc++, winpthread -----
+    target_link_options(go-game PRIVATE
+        -static-libgcc
+        -static-libstdc++
+        -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic
+    )
+
     # Copy DLLs
     add_custom_command(
         TARGET go-game POST_BUILD
