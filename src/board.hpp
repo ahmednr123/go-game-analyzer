@@ -24,12 +24,13 @@ private:
     bool auto_switch_flag = true;
     GoTurn turn = GoTurn::BLACK;
 
+    std::unique_ptr<KataGo> katago;
     std::shared_ptr<GoBoardState> state;
+
     KataGoEvaluation katago_evaluation;
     bool view_ownership = false;
 
     GoBoardInfo board;
-    KataGo katago;
 
 public:
     GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim);

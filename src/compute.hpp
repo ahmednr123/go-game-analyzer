@@ -87,4 +87,33 @@ computeActions (GoBoardSize size, std::vector<GoBoardAction> actions) {
     );
 }
 
+inline bool computeIfKo (GoBoardSize size, std::vector<GoBoardAction> actions, CaptureStonesAction action) {
+    // Need atleast 7 stones for a Ko
+    if (actions.size() > 6) {
+        actions.push_back(action);
+
+        Result<GoBoardStateComputed, GoErrorEnum> curr =
+            computeActions(
+                size,
+                actions
+            );
+
+        Result<GoBoardStateComputed, GoErrorEnum> prev =
+            computeActions(
+                size,
+                std::vector(
+                    actions.begin(),
+                    actions.end() - 2
+                )
+            );
+
+        if (curr.is_err() || prev.is_err()) {
+            return false;
+        }
+
+        return curr.ok_value() == prev.ok_value();
+    }
+    return false;
+}
+
 #endif

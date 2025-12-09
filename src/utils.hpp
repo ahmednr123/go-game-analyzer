@@ -2,6 +2,7 @@
 #define GO_UTILS_H
 
 #include "SDL3/SDL_pixels.h"
+#include "json.hpp"
 #include "base.hpp"
 #include <iostream>
 #include <optional>
@@ -100,6 +101,37 @@ hexToSDLColor(const std::string& hexCode) {
     }
 
     return std::make_optional<SDL_Color>(color);
+}
+
+
+inline
+std::string getJSONOrDefault (
+    const nlohmann::json& parsed_json,
+    const std::string& key,
+    const char* default_val
+) {
+    if (parsed_json.contains(key)) {
+        try { return parsed_json.at(key).get<std::string>(); }
+        catch (...) { }
+    }
+    return std::string(default_val);
+}
+
+template <typename T>
+inline T
+getJSONOrDefault (
+    const nlohmann::json& parsed_json,
+    std::string key,
+    const T& default_val
+) {
+    if (parsed_json.contains(key)) {
+        try {
+            return parsed_json.at(key).get<T>();
+        } catch (...) {
+            return default_val; // type mismatch → return default
+        }
+    }
+    return default_val;
 }
 
 #endif

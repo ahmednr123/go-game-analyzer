@@ -103,14 +103,16 @@ private:
     std::unique_ptr<KataGoEngine> engine = nullptr;
 
     std::mutex work_mutex;
-    std::atomic<bool> is_busy{false};
+    std::atomic<bool> is_busy = {false};
 
     bool is_init_failure = false;
+    bool is_disabled = false;
 
     int diff_lvl = 5; // 5,4,3,2,1
 
 public:
     KataGo(
+        bool is_disabled,
         const std::string& katago_path,
         const std::string& config_path,
         const std::string& model_path,
@@ -128,9 +130,15 @@ public:
     getEvaluation (std::vector<GoBoardAction> actions);
 
     bool isBusy ();
+    bool isDisabled () { return is_disabled; }
     bool isInitialized () {
         return !is_init_failure;
     }
+
+    KataGo(const KataGo&) = delete;
+    KataGo& operator=(const KataGo&) = delete;
+    KataGo(KataGo&&) = delete;
+    KataGo& operator=(KataGo&&) = delete;
 };
 
 #endif

@@ -18,18 +18,20 @@
 #include <optional>
 #include <string>
 
-GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim):
-    katago(KataGo(
-        GoGameConfig::getKatagoPath(),
-        GoGameConfig::getKatagoConfigPath(),
-        GoGameConfig::getModelPath(),
-        dim
-    ))
+GoBoard::GoBoard (SDL_Renderer* renderer, int w, int h, GoBoardSize dim)
 {
     this->dim = dim;
     this->window_w = w;
     this->window_h = h;
     this->renderer = renderer;
+
+    this->katago = std::make_unique<KataGo>(
+        !GoGameConfig::isEngineEnabled(),
+        GoGameConfig::getKatagoPath(),
+        GoGameConfig::getKatagoConfigPath(),
+        GoGameConfig::getModelPath(),
+        dim
+    );
 
     this->state = std::make_shared<GoBoardState>(dim);
     this->turn = GoTurn::BLACK;
@@ -50,7 +52,7 @@ void GoBoard::updateBoardInfo(int w, int h) {
 }
 
 void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
-    if (katago.isBusy()) return;
+    if (katago->isBusy()) return;
     std::visit([&](auto &&go_move) {
         using T = std::decay_t<decltype(go_move)>;
         if constexpr (std::is_same_v<T, GoStone>) {
@@ -67,7 +69,7 @@ void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
                         GoTurn::WHITE;
                 }
                 std::thread([&]() {
-                    auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                    auto katago_evaluation_opt = katago->getEvaluation(state->getActionsWithUndo());
                     if (katago_evaluation_opt.has_value()) {
                         katago_evaluation = katago_evaluation_opt.value();
                     }
@@ -88,7 +90,7 @@ void GoBoard::handleGoMove(std::variant<GoStone, GoTurn> go_move) {
                         GoTurn::WHITE;
                 }
                 std::thread([&]() {
-                    auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
+                    auto katago_evaluation_opt = katago->getEvaluation(state->getActionsWithUndo());
                     if (katago_evaluation_opt.has_value()) {
                         katago_evaluation = katago_evaluation_opt.value();
                     }
@@ -144,66 +146,83 @@ void GoBoard::handleEvent(SDL_Event* event, const std::vector<GoError>& errors) 
             } else if (key_event.scancode == SDL_SCANCODE_X) {
                 this->auto_switch_flag = !this->auto_switch_flag;
             } else if (key_event.scancode == SDL_SCANCODE_U) {
-                Result<bool, GoErrorEnum> res = this->state->undo();
-                if (res.is_err()) {
-                    SDL_Log("Undo error");
-                }
+                if (!katago->isBusy()) {
+                    Result<bool, GoErrorEnum> res = this->state->undo();
+                    if (res.is_err()) {
+                        SDL_Log("Undo error");
+                    }
 
-                if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
-                    this->turn = this->turn == GoTurn::WHITE ?
-                        GoTurn::BLACK :
-                        GoTurn::WHITE;
-                    std::thread([&]() {
-                        auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
-                        if (katago_evaluation_opt.has_value()) {
-                            katago_evaluation = katago_evaluation_opt.value();
-                        }
-                    }).detach();
+                    if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
+                        this->turn = this->turn == GoTurn::WHITE ?
+                            GoTurn::BLACK :
+                            GoTurn::WHITE;
+                        std::thread([&]() {
+                            auto katago_evaluation_opt = katago->getEvaluation(state->getActionsWithUndo());
+                            if (katago_evaluation_opt.has_value()) {
+                                katago_evaluation = katago_evaluation_opt.value();
+                            }
+                        }).detach();
+                    }
+                } else {
+                    GoErrorHandler::throwError(GoErrorEnum::ENGINE_BUSY);
                 }
             } else if (key_event.scancode == SDL_SCANCODE_R) {
-                Result<bool, GoErrorEnum> res = this->state->redo();
-                if (res.is_err()) {
-                    SDL_Log("Redo error");
-                }
+                if (!katago->isBusy()) {
+                    Result<bool, GoErrorEnum> res = this->state->redo();
+                    if (res.is_err()) {
+                        SDL_Log("Redo error");
+                    }
 
-                if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
-                    this->turn = this->turn == GoTurn::WHITE ?
-                        GoTurn::BLACK :
-                        GoTurn::WHITE;
-                    std::thread([&]() {
-                        auto katago_evaluation_opt = katago.getEvaluation(state->getActionsWithUndo());
-                        if (katago_evaluation_opt.has_value()) {
-                            katago_evaluation = katago_evaluation_opt.value();
-                        }
-                    }).detach();
+                    if (this->auto_switch_flag && res.is_ok() && res.ok_value()) {
+                        this->turn = this->turn == GoTurn::WHITE ?
+                            GoTurn::BLACK :
+                            GoTurn::WHITE;
+                        std::thread([&]() {
+                            auto katago_evaluation_opt = katago->getEvaluation(state->getActionsWithUndo());
+                            if (katago_evaluation_opt.has_value()) {
+                                katago_evaluation = katago_evaluation_opt.value();
+                            }
+                        }).detach();
+                    }
+                } else {
+                    GoErrorHandler::throwError(GoErrorEnum::ENGINE_BUSY);
                 }
             } else if (key_event.scancode == SDL_SCANCODE_P) {
                 this->handleGoMove(this->turn);
             } else if (key_event.scancode == SDL_SCANCODE_SPACE) {
-                if (!this->state->getComputed().isGameEnded()) {
-                    auto go_move_opt = this->katago.nextNMoves(this->state->getActionsWithUndo(), 1);
-                    if (go_move_opt.has_value()) {
-                        this->handleGoMove(go_move_opt.value());
-                    } else {
-                        GoErrorHandler::throwError(GoErrorEnum::ENGINE_NOT_FOUND);
-                    }
+                if (this->katago->isBusy()) {
+                    GoErrorHandler::throwError(GoErrorEnum::ENGINE_BUSY);
+                } else if (!this->state->getComputed().isGameEnded()) {
+                    std::thread([&]() {
+                        auto go_move_opt = this->katago->nextNMoves(this->state->getActionsWithUndo(), 1);
+                        if (go_move_opt.has_value()) {
+                            this->handleGoMove(go_move_opt.value());
+                        } else {
+                            GoErrorHandler::throwError(GoErrorEnum::ENGINE_NOT_FOUND);
+                        }
+                    }).detach();
                 }
             } else if (key_event.scancode == SDL_SCANCODE_5) {
-                this->katago.updateDiffLevel(5);
+                this->katago->updateDiffLevel(5);
             } else if (key_event.scancode == SDL_SCANCODE_4) {
-                this->katago.updateDiffLevel(4);
+                this->katago->updateDiffLevel(4);
             } else if (key_event.scancode == SDL_SCANCODE_3) {
-                this->katago.updateDiffLevel(3);
+                this->katago->updateDiffLevel(3);
             } else if (key_event.scancode == SDL_SCANCODE_2) {
-                this->katago.updateDiffLevel(2);
+                this->katago->updateDiffLevel(2);
             } else if (key_event.scancode == SDL_SCANCODE_1) {
-                this->katago.updateDiffLevel(1);
+                this->katago->updateDiffLevel(1);
             }
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_UP: {
             if (error_severity_opt.has_value()
                     && error_severity_opt.value() >= GoErrorSeverity::RECOVERABLE) {
+                break;
+            }
+
+            if (this->katago->isBusy()) {
+                GoErrorHandler::throwError(GoErrorEnum::ENGINE_BUSY);
                 break;
             }
 
@@ -315,19 +334,19 @@ void GoBoard::renderUI () {
         auto_switch += auto_switch_flag ? "True" : "False";
         GoDrawHelper::DrawText(text_engine, font, theme.text_color, top_left, auto_switch, 12);
 
-        if (!katago.isInitialized()) {
+        if (!katago->isInitialized() || katago->isDisabled()) {
             GoDrawHelper::DrawText(
                 text_engine, font, theme.error_text_color, top_center,
                 "[Engine not found]", 12, GoTextAlign::MIDDLE_ALIGN
             );
-        } else if (katago.isInitialized() && katago.isBusy()) {
+        } else if (katago->isInitialized() && katago->isBusy()) {
             GoDrawHelper::DrawText(
                 text_engine, font, theme.error_text_color, top_center,
                 "[Engine Busy]", 12, GoTextAlign::MIDDLE_ALIGN
             );
-        } else if (katago.isInitialized()){
+        } else if (katago->isInitialized()){
             std::string diff_levels = " 5  4  3  2  1 ";
-            int diff_lvl = this->katago.getDiffLevel();
+            int diff_lvl = this->katago->getDiffLevel();
             diff_levels[(5-diff_lvl)*3] = '[';
             diff_levels[(5-diff_lvl)*3 + 2] = ']';
 
@@ -354,7 +373,7 @@ void GoBoard::renderUI () {
             }
         }
 
-        if (katago.isInitialized()) {
+        if (!katago->isDisabled() && katago->isInitialized()) {
             std::string score = "B+0";
             if (katago_evaluation.score > 0) {
                 std::ostringstream oss;

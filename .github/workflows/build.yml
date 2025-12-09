@@ -105,6 +105,7 @@ jobs:
           cmake --build .
           mkdir out
           mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
+          mv ./katago-windows-cpu/*.dll ./assets/KataGo
           cp MCE.exe out/
           cp *.dll out/
           cp -r assets out/
@@ -118,6 +119,7 @@ jobs:
           cmake --build .
           mkdir out
           mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
+          mv ./katago-windows-gpu/*.dll ./assets/KataGo
           cp MCE.exe out/
           cp *.dll out/
           cp -r assets out/

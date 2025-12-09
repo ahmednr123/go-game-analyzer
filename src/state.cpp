@@ -125,19 +125,33 @@ Result<bool, GoErrorEnum> GoBoardState::addStone (GoStone stone) {
         GoBoardRuleManager::getCapturedGroups(this->computed, stone);
 
     if (captured_groups.size() > 0) {
-        GoSound::playCapture();
-
         std::vector<GoStone> removed_stones;
         for (auto group : captured_groups) {
             removed_stones.insert(removed_stones.end(), group.begin(), group.end());
         }
-        this->handleUndoClear();
-        actions.push_back(
-            CaptureStonesAction({
-                stone, removed_stones
-            })
-        );
-        is_stone_added = true;
+
+        bool is_in_ko = computeIfKo(
+                this->dim,
+                std::vector(
+                    this->actions.begin(),
+                    this->actions.end() - undo_by
+                ),
+                CaptureStonesAction({stone, removed_stones})
+            );
+
+        if (!is_in_ko) {
+            GoSound::playCapture();
+            this->handleUndoClear();
+
+            actions.push_back(
+                CaptureStonesAction({
+                    stone, removed_stones
+                })
+            );
+            is_stone_added = true;
+        } else {
+            GoErrorHandler::throwError(GoErrorEnum::GAME_IN_KO);
+        }
     } else if (GoBoardRuleManager::isValidStoneIgnoringCapture(this->computed, stone)) {
         this->handleUndoClear();
         actions.push_back(

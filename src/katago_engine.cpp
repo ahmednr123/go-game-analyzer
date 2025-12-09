@@ -1,4 +1,6 @@
 #include "katago_engine.hpp"
+#include "error.hpp"
+#include <iostream>
 #include <SDL3/SDL_log.h>
 #include <filesystem>
 #include <cmath>
@@ -10,7 +12,7 @@ bool doesKataGoExist (std::string katago_path) {
 #ifndef WINDOWS
     std::string cmd = "command -v " + katago_path + " /dev/null 2>&1";
 #else
-    std::string cmd = "where " + katago_path + " > nul 2>&1";
+    std::string cmd = katago_path;
 #endif
 
     return system(cmd.c_str()) == 0;
@@ -32,6 +34,7 @@ KataGoEngine::KataGoEngine(
     if (!doesKataGoExist(katagoPath)) {
         is_init_failure = true;
         init_callback(is_init_failure);
+        SDL_Log("Failed because katago doesnt exist");
         return;
     }
 
@@ -40,6 +43,7 @@ KataGoEngine::KataGoEngine(
     ) {
         is_init_failure = true;
         init_callback(is_init_failure);
+        SDL_Log("Failed because katago config or model doesnt exit");
         return;
     }
 
@@ -271,7 +275,8 @@ KataGoEngine::getNextMove(int topN) {
     if (!msg.contains("moveInfos") || msg["moveInfos"].empty()
             || !msg.contains("rootInfo") || !msg["rootInfo"].contains("currentPlayer")
     ) {
-        // Bad json
+        GoErrorHandler::throwError(GoErrorEnum::ENGINE_NOT_USABLE);
+        return std::nullopt;
     }
 
     std::vector<std::string> move(2);
@@ -289,8 +294,8 @@ KataGoEngine::getEvaluation () {
     json msg = getJSON();
 
     if (!msg.contains("ownership") || !msg.contains("rootInfo") || !msg["rootInfo"].contains("scoreLead")) {
-        // Bad json
-        SDL_Log("getEvaluation JSON ERROR!");
+        GoErrorHandler::throwError(GoErrorEnum::ENGINE_NOT_USABLE);
+        return std::nullopt;
     }
 
     int board_size = std::sqrt(msg["ownership"].size());

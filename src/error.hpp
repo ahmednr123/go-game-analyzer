@@ -26,7 +26,10 @@ enum class GoErrorEnum {
     ENGINE_VERSION_MISMATCH,
     ENGINE_PARSE_ERROR,
     ENGINE_CONFIG_FILE_NOT_FOUND,
-    ENGINE_MODEL_FILE_NOT_FOUND
+    ENGINE_MODEL_FILE_NOT_FOUND,
+    ENGINE_BUSY,
+    ENGINE_NOT_USABLE,
+    GAME_IN_KO
 };
 
 struct GoError {
@@ -41,7 +44,10 @@ const std::unordered_map<GoErrorEnum, GoError> GO_ERRORS = {
     {GoErrorEnum::ENGINE_VERSION_MISMATCH, {GoErrorSeverity::WARNING, "Engine version mismatch, issues may occur. Use version: "}},
     {GoErrorEnum::ENGINE_PARSE_ERROR, {GoErrorSeverity::DEBUG, "Response from katago cannot be parsed properly."}},
     {GoErrorEnum::ENGINE_CONFIG_FILE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine config file not found, Engine failed to load"}},
-    {GoErrorEnum::ENGINE_MODEL_FILE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine model file not found, Engine failed to load"}}
+    {GoErrorEnum::ENGINE_MODEL_FILE_NOT_FOUND, {GoErrorSeverity::WARNING, "Engine model file not found, Engine failed to load"}},
+    {GoErrorEnum::ENGINE_BUSY, {GoErrorSeverity::WARNING, "Engine is busy"}},
+    {GoErrorEnum::ENGINE_NOT_USABLE, {GoErrorSeverity::WARNING, "Engine parse error, disabling it for now."}},
+    {GoErrorEnum::GAME_IN_KO, {GoErrorSeverity::WARNING, "The game is in KO, play elsewhere first."}}
 };
 
 struct GoErrorPacket {

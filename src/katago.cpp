@@ -70,33 +70,25 @@ std::vector<std::vector<std::string>> getMoves (GoBoardSize size, std::vector<Go
 }
 
 KataGo::KataGo(
+    bool is_disabled,
     const std::string& katago_path,
     const std::string& config_path,
     const std::string& model_path,
     GoBoardSize size
 ) {
-    namespace fs = std::filesystem;
-
-    this->engine =
-        std::unique_ptr<KataGoEngine>(
-            new KataGoEngine(
+    this->is_disabled = is_disabled;
+    if (!this->is_disabled) {
+        this->engine =
+            std::make_unique<KataGoEngine>(
                 katago_path,
                 config_path,
                 model_path,
                 [&](bool is_failure) {
                     is_init_failure = is_failure;
                 }
-            )
-        );
+            );
+    }
     this->size = size;
-
-    if (fs::exists(config_path)) {
-
-    }
-
-    if (fs::exists(config_path)) {
-
-    }
 }
 
 void KataGo::updateDiffLevel (int diff_lvl) {
@@ -108,13 +100,14 @@ std::optional<std::variant<GoStone, GoTurn>>
 KataGo::nextNMoves (
     std::vector<GoBoardAction> actions, int n
 ) {
-    if (is_init_failure)
+    if (is_init_failure || is_disabled)
         return std::nullopt;
 
     std::optional<std::variant<GoStone, GoTurn>> go_move_opt = std::nullopt;
     std::lock_guard<std::mutex> lock(work_mutex);
     try {
         is_busy.store(true);
+
         std::vector<std::vector<std::string>> moves =
             getMoves(this->size, actions);
 
@@ -129,6 +122,7 @@ KataGo::nextNMoves (
                 next_move_opt = engine->getNextMove();
 
             if (!next_move_opt.has_value()) {
+                is_disabled = true;
                 return std::nullopt;
             }
 
@@ -158,7 +152,7 @@ KataGo::nextNMoves (
 
 std::optional<KataGoEvaluation>
 KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
-    if (is_init_failure)
+    if (is_init_failure || is_disabled)
         return std::nullopt;
 
     std::lock_guard<std::mutex> lock(work_mutex);
@@ -173,6 +167,9 @@ KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
         engine->sendJSON(query);
 
         evaluation = engine->getEvaluation();
+        if (!evaluation.has_value()) {
+            is_disabled = true;
+        }
     } catch (const json::parse_error& err) {
         std::cerr << "Parse error for invalid JSON: " << err.what() << std::endl;
         std::cerr << "Error details: " << err.id << " at position " << err.byte << std::endl;
@@ -181,7 +178,7 @@ KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
     return evaluation;
 }
 
- bool KataGo::isBusy () {
-    return is_busy.load();
+bool KataGo::isBusy () {
+    return this->is_busy.load();
 }
 

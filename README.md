@@ -29,9 +29,9 @@ Todo:
 - ~~Windows code to handle KataGo communication~~
 - ~~Display error and stop rendering if any error is prompted~~
 - ~~Add theme functionality~~
-- Handle Ko situation (repeating board position is not allowed)
+- ~~Handle Ko situation (repeating board position is not allowed)~~
 - Let AI play from the current turn (Switch to "moves" & "initialMoves")
-- Bundle with KataGo
+- ~~Bundle with KataGo~~
 
 Next Release:
 - Human like play using b18c384nbt-humanv0.bin.gz model
