@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MCE LANGUAGES CXX)
+project(go-game LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,7 +50,7 @@ set(HEADERS
     src/theme.hpp
 )
 
-add_executable(MCE ${SOURCES} ${HEADERS})
+add_executable(go-game ${SOURCES} ${HEADERS})
 
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_IGNORE_PATH "/usr/local/include" "/usr/include" "/usr/lib" "/usr/local/lib")
@@ -64,15 +64,15 @@ if (MINGW)
 
     add_compile_definitions(WINDOWS)
 
-    target_include_directories(MCE PRIVATE
+    target_include_directories(go-game PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/include
     )
 
-    target_link_directories(MCE PRIVATE
+    target_link_directories(go-game PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/windows
     )
 
-    target_link_libraries(MCE PRIVATE
+    target_link_libraries(go-game PRIVATE
         SDL3
         SDL3_ttf
         SDL3_mixer
@@ -81,24 +81,24 @@ if (MINGW)
 
     # Copy DLLs
     add_custom_command(
-        TARGET MCE POST_BUILD
+        TARGET go-game POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/lib/windows/SDL3.dll
             ${CMAKE_SOURCE_DIR}/lib/windows/SDL3_ttf.dll
             ${CMAKE_SOURCE_DIR}/lib/windows/SDL3_mixer.dll
             ${CMAKE_SOURCE_DIR}/lib/windows/freetype.dll
-            $<TARGET_FILE_DIR:MCE>
+            $<TARGET_FILE_DIR:go-game>
     )
 
     # Copy assets
     add_custom_command(
-        TARGET MCE POST_BUILD
+        TARGET go-game POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/assets
-            $<TARGET_FILE_DIR:MCE>/assets
+            $<TARGET_FILE_DIR:go-game>/assets
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/config.${CONFIG_TYPE}.json
-            $<TARGET_FILE_DIR:MCE>/config.json
+            $<TARGET_FILE_DIR:go-game>/config.json
     )
 
     return()
@@ -112,17 +112,17 @@ endif()
 message(STATUS "Using manually provided SDL3 libraries")
 
 # Include directory for custom SDL build
-target_include_directories(MCE PRIVATE
+target_include_directories(go-game PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/include
 )
 
 # Library search path
-target_link_directories(MCE PRIVATE
+target_link_directories(go-game PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/linux
 )
 
 # Link your custom .so files (no find_package)
-target_link_libraries(MCE PRIVATE
+target_link_libraries(go-game PRIVATE
     SDL3
     SDL3_ttf
     SDL3_mixer
@@ -132,16 +132,16 @@ target_link_libraries(MCE PRIVATE
 if(BUILD_TYPE STREQUAL "linux")
 # Copy library files
     add_custom_command(
-        TARGET MCE POST_BUILD
+        TARGET go-game POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3.so.0.3.3
-            $<TARGET_FILE_DIR:MCE>
+            $<TARGET_FILE_DIR:go-game>
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3_ttf.so.0.3.0
-            $<TARGET_FILE_DIR:MCE>
+            $<TARGET_FILE_DIR:go-game>
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_SOURCE_DIR}/lib/linux/libSDL3_mixer.so.0.1.0
-            $<TARGET_FILE_DIR:MCE>
+            $<TARGET_FILE_DIR:go-game>
     )
 
     execute_process(COMMAND bash "${CMAKE_SOURCE_DIR}/scripts/generate-symlinks.sh"
@@ -150,11 +150,11 @@ endif()
 
 # Copy assets
 add_custom_command(
-    TARGET MCE POST_BUILD
+    TARGET go-game POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets
-        $<TARGET_FILE_DIR:MCE>/assets
+        $<TARGET_FILE_DIR:go-game>/assets
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/config.${CONFIG_TYPE}.json
-        $<TARGET_FILE_DIR:MCE>/config.json
+        $<TARGET_FILE_DIR:go-game>/config.json
 )

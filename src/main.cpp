@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     }
 
     SDL_Window* window = SDL_CreateWindow(
-        "MCE Circle Demo",
+        "Go Game Analyzer",
         720, 405,
         SDL_WINDOW_RESIZABLE
     );

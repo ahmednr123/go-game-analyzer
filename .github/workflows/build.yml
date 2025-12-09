@@ -26,7 +26,7 @@ jobs:
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_raw ..
           cmake --build .
           mkdir out
-          cp MCE out/
+          cp go-game out/
           cp -P *.so* out/
           cp -r assets out/
           cp config.json out/
@@ -34,12 +34,14 @@ jobs:
       - name: Package Linux + Katago CPU
         run: |
           mv ./katago-linux-cpu/katago ./assets/KataGo/katago
+          mkdir -p assets/KataGo/models
+          mv ./*.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
           cd build-cpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
           mkdir out
-          cp MCE out/
+          cp go-game out/
           cp -P *.so* out/
           cp -r assets out/
           cp config.json out/
@@ -47,12 +49,14 @@ jobs:
       - name: Package Linux + Katago GPU
         run: |
           mv ./katago-linux-gpu/katago ./assets/KataGo/katago
+          mkdir -p assets/KataGo/models
+          mv ./*.bin.gz ./assets/KataGo/models/
           mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
           mkdir out
-          cp MCE out/
+          cp go-game out/
           cp -P *.so* out/
           cp -r assets out/
           cp config.json out/
@@ -96,7 +100,7 @@ jobs:
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_raw -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
           mkdir out
-          cp MCE.exe out/
+          cp go-game.exe out/
           cp *.dll out/
           cp -r assets out/
           cp config.json out/
@@ -105,12 +109,14 @@ jobs:
         run: |
           mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-cpu/*.dll ./assets/KataGo
+          mkdir -p assets/KataGo/models
+          mv ./*.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
           cd build-cpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
           mkdir out
-          cp MCE.exe out/
+          cp go-game.exe out/
           cp *.dll out/
           cp -r assets out/
           cp config.json out/
@@ -119,12 +125,14 @@ jobs:
         run: |
           mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-gpu/*.dll ./assets/KataGo
+          mkdir -p assets/KataGo/models
+          mv ./*.bin.gz ./assets/KataGo/models/
           mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
           mkdir out
-          cp MCE.exe out/
+          cp go-game.exe out/
           cp *.dll out/
           cp -r assets out/
           cp config.json out/
@@ -172,7 +180,7 @@ jobs:
   #        run: |
   #          cd build-macos
   #          mkdir out
-  #          cp MCE out/
+  #          cp go-game out/
   #          cp -r assets out/
   #          cp config.json out/
   #

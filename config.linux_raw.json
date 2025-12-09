@@ -1,6 +1,6 @@
 {
-    "engine_enabled": true,
+    "engine_enabled": false,
     "katago_path": "katago",
-    "config_path": "./assets/KataGo/config/analysis_example.cfg",
-    "model_path": "./assets/KataGo/models/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz"
+    "config_path": "analysis_example.cfg",
+    "model_path": "kata1-b18c384nbt-s9996604416-d4316597426.bin.gz"
 }

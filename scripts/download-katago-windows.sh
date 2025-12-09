@@ -18,6 +18,3 @@ unzip katago-v1.16.4-eigenavx2-windows-x64.zip -d katago-windows-cpu
 unzip katago-v1.16.4-opencl-windows-x64.zip -d katago-windows-gpu
 
 wget https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz
-
-mkdir -p assets/KataGo/models
-mv kata1-b18c384nbt-s9996604416-d4316597426.bin.gz assets/KataGo/models/
