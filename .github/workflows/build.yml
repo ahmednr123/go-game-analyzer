@@ -119,7 +119,7 @@ jobs:
         run: |
           mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-gpu/*.dll ./assets/KataGo
-          mkdirr build-gpu
+          mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
