@@ -17,7 +17,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt update && sudo apt install -y cmake g++ make
-          sh ./scripts/download-katago.sh
+          sh ./scripts/download-katago-linux.sh
 
       - name: Package Linux Raw
         run: |
@@ -87,6 +87,7 @@ jobs:
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           x86_64-w64-mingw32-g++ -v
+          sh ./scripts/download-katago-windows.sh
 
       - name: Package Windows Raw
         run: |
