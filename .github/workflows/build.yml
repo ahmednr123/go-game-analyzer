@@ -84,6 +84,9 @@ jobs:
         run: |
           sudo apt update && sudo apt install -y cmake g++ make
           sudo apt install -y mingw-w64
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          x86_64-w64-mingw32-g++ -v
 
       - name: Package Windows Raw
         run: |
@@ -143,39 +146,39 @@ jobs:
   # ============================
   # macOS (Homebrew SDL3)
   # ============================
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install SDL3 via Homebrew
-        run: |
-          brew update
-          brew install sdl3 sdl3_ttf
-
-      - name: Configure
-        run: |
-          mkdir build-macos
-          cd build-macos
-          cmake -DBUILD_TYPE=macos ..
-
-      - name: Build
-        run: |
-          cd build-macos
-          cmake --build . --config Release -j
-
-      - name: Package
-        run: |
-          cd build-macos
-          mkdir out
-          cp MCE out/
-          cp -r assets out/
-          cp config.json out/
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: go-game-macos
-          path: build-macos/out/*
+  #  build-macos:
+  #    runs-on: macos-latest
+  #    steps:
+  #      - uses: actions/checkout@v3
+  #
+  #      - name: Install SDL3 via Homebrew
+  #        run: |
+  #          brew update
+  #          brew install sdl3 sdl3_ttf sdl3_mixer freetype
+  #
+  #      - name: Configure
+  #        run: |
+  #          mkdir build-macos
+  #          cd build-macos
+  #          cmake -DBUILD_TYPE=macos ..
+  #
+  #      - name: Build
+  #        run: |
+  #          cd build-macos
+  #          cmake --build . --config Release -j
+  #
+  #      - name: Package
+  #        run: |
+  #          cd build-macos
+  #          mkdir out
+  #          cp MCE out/
+  #          cp -r assets out/
+  #          cp config.json out/
+  #
+  #      - uses: actions/upload-artifact@v4
+  #        with:
+  #          name: go-game-macos
+  #          path: build-macos/out/*
 
   # ============================
   # Publish Release (GitHub Release)
@@ -204,10 +207,10 @@ jobs:
           zip -r ../go-game-windows-with-katago-cpu.zip .
           cd ../go-game-windows-gpu
           zip -r ../go-game-windows-with-katago-gpu.zip .
-          cd ../go-game-macos
-          zip -r ../go-game-macos.zip .
           cd ..
           ls -lah
+          #cd ../go-game-macos
+          #zip -r ../go-game-macos.zip .
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -221,4 +224,4 @@ jobs:
             artifacts/go-game-windows.zip
             artifacts/go-game-windows-with-katago-cpu.zip
             artifacts/go-game-windows-with-katago-gpu.zip
-            artifacts/go-game-macos.zip
+          #artifacts/go-game-macos.zip
