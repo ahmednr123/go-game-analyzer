@@ -184,7 +184,7 @@ jobs:
   # Publish Release (GitHub Release)
   # ============================
   publish:
-    needs: [build-linux, build-windows, build-macos]
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
