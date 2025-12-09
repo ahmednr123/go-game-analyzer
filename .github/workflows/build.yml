@@ -198,9 +198,9 @@ jobs:
         run: |
           cd artifacts/go-game-linux
           zip -r ../go-game-linux.zip .
-          cd artifacts/go-game-linux-cpu
+          cd ../go-game-linux-cpu
           zip -r ../go-game-linux-with-katago-cpu.zip .
-          cd artifacts/go-game-linux-gpu
+          cd ../go-game-linux-gpu
           zip -r ../go-game-linux-with-katago-gpu.zip .
           cd ../go-game-windows
           zip -r ../go-game-windows.zip .
