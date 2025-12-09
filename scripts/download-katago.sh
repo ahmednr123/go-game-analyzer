@@ -18,12 +18,12 @@ mkdir katago-windows-gpu
 mkdir katago-linux-cpu
 mkdir katago-linux-gpu
 
-unzip katago-v1.16.4-eigenavx2-windows-x64.zip katago -d katago-windows-cpu
-unzip katago-v1.16.4-opencl-windows-x64.zip katago -d katago-windows-cpu
-unzip katago-v1.16.4-eigenavx2-linux-x64.zip katago -d katago-linux-cpu
-unzip katago-v1.16.4-opencl-linux-x64.zip katago -d katago-linux-gpu
+unzip katago-v1.16.4-eigenavx2-windows-x64.zip -d katago-windows-cpu
+unzip katago-v1.16.4-opencl-windows-x64.zip -d katago-windows-gpu
+unzip katago-v1.16.4-eigenavx2-linux-x64.zip -d katago-linux-cpu
+unzip katago-v1.16.4-opencl-linux-x64.zip -d katago-linux-gpu
 
 wget https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz
 
-mkdir assets/KataGo/models
+mkdir -p assets/KataGo/models
 mv kata1-b18c384nbt-s9996604416-d4316597426.bin.gz assets/KataGo/models/

@@ -33,12 +33,12 @@ jobs:
 
       - name: Package Linux + Katago CPU
         run: |
+          mv ./katago-linux-cpu/katago ./assets/KataGo/katago
           mkdir build-cpu
           cd build-cpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
           mkdir out
-          mv ./katago-linux-cpu/katago ./assets/KataGo/katago
           cp MCE out/
           cp -P *.so* out/
           cp -r assets out/
@@ -46,12 +46,12 @@ jobs:
 
       - name: Package Linux + Katago GPU
         run: |
+          mv ./katago-linux-gpu/katago ./assets/KataGo/katago
           mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
           mkdir out
-          mv ./katago-linux-gpu/katago ./assets/KataGo/katago
           cp MCE out/
           cp -P *.so* out/
           cp -r assets out/
@@ -87,7 +87,7 @@ jobs:
 
       - name: Package Windows Raw
         run: |
-          mkdirr build-raw
+          mkdir build-raw
           cd build-raw
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_raw -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
@@ -99,13 +99,13 @@ jobs:
 
       - name: Package Windows + Katago CPU
         run: |
-          mkdirr build-cpu
+          mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
+          mv ./katago-windows-cpu/*.dll ./assets/KataGo
+          mkdir build-cpu
           cd build-cpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
           mkdir out
-          mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
-          mv ./katago-windows-cpu/*.dll ./assets/KataGo
           cp MCE.exe out/
           cp *.dll out/
           cp -r assets out/
@@ -113,13 +113,13 @@ jobs:
 
       - name: Package Windows + Katago GPU
         run: |
+          mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
+          mv ./katago-windows-gpu/*.dll ./assets/KataGo
           mkdirr build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
           cmake --build .
           mkdir out
-          mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
-          mv ./katago-windows-gpu/*.dll ./assets/KataGo
           cp MCE.exe out/
           cp *.dll out/
           cp -r assets out/

@@ -1,6 +1,9 @@
 #ifndef KATAGO_ENGINE_HPP
 #define KATAGO_ENGINE_HPP
 
+#define _DARWIN_C_SOURCE
+#include <signal.h>
+
 #include <functional>
 #include <string>
 #include <thread>
