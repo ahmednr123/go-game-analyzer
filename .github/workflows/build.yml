@@ -35,8 +35,6 @@ jobs:
         run: |
           mv ./katago-linux-cpu/katago ./assets/KataGo/katago
           mkdir -p assets/KataGo/models
-          pwd
-          ls
           mv *.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
           cd build-cpu
@@ -52,9 +50,8 @@ jobs:
         run: |
           mv ./katago-linux-gpu/katago ./assets/KataGo/katago
           mkdir -p assets/KataGo/models
-          pwd
-          ls
-          mv *.bin.gz ./assets/KataGo/models/
+          #already moved by the previous execution
+          #mv *.bin.gz ./assets/KataGo/models/
           mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
@@ -114,8 +111,6 @@ jobs:
           mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-cpu/*.dll ./assets/KataGo
           mkdir -p assets/KataGo/models
-          pwd
-          ls
           mv *.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
           cd build-cpu
@@ -132,9 +127,8 @@ jobs:
           mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-gpu/*.dll ./assets/KataGo
           mkdir -p assets/KataGo/models
-          pwd
-          ls
-          mv *.bin.gz ./assets/KataGo/models/
+          #already moved by the previous execution
+          #mv *.bin.gz ./assets/KataGo/models/
           mkdir build-gpu
           cd build-gpu
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_with_katago -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
