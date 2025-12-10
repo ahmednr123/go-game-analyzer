@@ -238,9 +238,9 @@ jobs:
           token: ${{ secrets.TOKEN }}
           generate_release_notes: true
           files: |
-            artifacts/go-game-linux.tar.gz
-            artifacts/go-game-linux-with-katago-cpu.tar.gz
-            artifacts/go-game-linux-with-katago-gpu.tar.gz
+            artifacts/go-game-linux/go-game-linux.tar.gz
+            artifacts/go-game-linux-with-katago-cpu/go-game-linux-with-katago-cpu.tar.gz
+            artifacts/go-game-linux-with-katago-gpu/go-game-linux-with-katago-gpu.tar.gz
             artifacts/go-game-windows.zip
             artifacts/go-game-windows-with-katago-cpu.zip
             artifacts/go-game-windows-with-katago-gpu.zip
