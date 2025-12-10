@@ -221,8 +221,8 @@ jobs:
 
       - name: Create archive files
         run: |
-          ls -lah
-          cd ../go-game-windows
+          ls -lah ./artifacts
+          cd artifacts/go-game-windows
           zip -r ../go-game-windows.zip .
           cd ../go-game-windows-cpu
           zip -r ../go-game-windows-with-katago-cpu.zip .
