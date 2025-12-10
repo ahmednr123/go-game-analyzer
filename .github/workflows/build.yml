@@ -32,7 +32,7 @@ jobs:
           cp -r assets go-game-analyzer/
           cp config.json go-game-analyzer/
           cp ../scripts/run.sh go-game-analyzer/
-          chmod a+x out/run.sh
+          chmod a+x go-game-analyzer/run.sh
           tar -czvf go-game-linux.tar.gz go-game-analyzer/
 
       - name: Package Linux + Katago CPU
@@ -51,7 +51,7 @@ jobs:
           cp -r assets go-game-analyzer-cpu/
           cp config.json go-game-analyzer-cpu/
           cp ../scripts/run.sh go-game-analyzer-cpu/
-          chmod a+x out/run.sh
+          chmod a+x go-game-analyzer-cpu/run.sh
           tar -czvf go-game-linux-with-katago-cpu.tar.gz go-game-analyzer-cpu/
 
       - name: Package Linux + Katago GPU
@@ -71,7 +71,7 @@ jobs:
           cp -r assets go-game-analyzer-gpu/
           cp config.json go-game-analyzer-gpu/
           cp ../scripts/run.sh go-game-analyzer-gpu/
-          chmod a+x out/run.sh
+          chmod a+x go-game-analyzer-gpu/run.sh
           tar -czvf go-game-linux-with-katago-gpu.tar.gz go-game-analyzer-gpu/
 
       - uses: actions/upload-artifact@v4
