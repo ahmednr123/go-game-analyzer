@@ -62,7 +62,7 @@ inline json getEvaluationQuery (
     req["boardXSize"] = board_size;
     req["boardYSize"] = board_size;
 
-    req["maxVisits"] = 800;
+    req["maxVisits"] = 20;
     req["rootPolicyTemperature"] = 0.3;
     req["rootFpuReductionMax"] = 0.5;
 

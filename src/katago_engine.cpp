@@ -157,6 +157,8 @@ void KataGoEngine::startProcess(
         exit(1);
     }
 
+    SDL_Log("[Katago started successfully]");
+
     // Parent should close child side of pipes
     CloseHandle(hChildStdoutWr);
     CloseHandle(hChildStdinRd);
@@ -205,6 +207,7 @@ void KataGoEngine::readerLoop() {
         }
     }
 #else
+    bool is_ready = false;
     while (running) {
         DWORD available = 0;
         if (!PeekNamedPipe(hChildStdoutRd, NULL, 0, NULL, &available, NULL)) {
@@ -229,6 +232,13 @@ void KataGoEngine::readerLoop() {
             std::string line = current.substr(0, pos);
             current.erase(0, pos + 1);
 
+            if (!is_ready) {
+                if (line.find("Started, ready to begin handling requests") != std::string::npos) {
+                    is_ready = true;
+                }
+                continue;
+            }
+
             try {
                 json j = json::parse(line);
                 {
@@ -238,6 +248,7 @@ void KataGoEngine::readerLoop() {
                 qCv.notify_one();
             } catch (...) {
                 // ignore invalid JSON
+                SDL_Log("[JSON parse error]");
             }
         }
     }

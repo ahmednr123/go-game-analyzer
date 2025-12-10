@@ -103,10 +103,10 @@ KataGo::nextNMoves (
     if (is_init_failure || is_disabled)
         return std::nullopt;
 
+    is_busy.store(true);
     std::optional<std::variant<GoStone, GoTurn>> go_move_opt = std::nullopt;
     std::lock_guard<std::mutex> lock(work_mutex);
     try {
-        is_busy.store(true);
 
         std::vector<std::vector<std::string>> moves =
             getMoves(this->size, actions);
@@ -114,7 +114,7 @@ KataGo::nextNMoves (
         while (n--) {
             std::string id = genRandomString(5);
             json query = getMoveQuery(id, moves, size);
-            addDiffLevelToKatagoRequest(query, this->diff_lvl);
+            KataGoSettings::applyDiffLevel(query, getLevel(this->diff_lvl));
 
             engine->sendJSON(query);
 
@@ -163,6 +163,7 @@ KataGo::getEvaluation (std::vector<GoBoardAction> actions) {
 
         std::string id = genRandomString(5);
         json query = getEvaluationQuery(id, moves, size);
+        KataGoSettings::applyEvaluationConfig(query);
 
         engine->sendJSON(query);
 

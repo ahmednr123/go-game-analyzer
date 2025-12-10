@@ -24,6 +24,7 @@ set(SOURCES
     src/rules.cpp
     src/katago.cpp
     src/katago_engine.cpp
+    src/katago_settings.cpp
     src/config.cpp
     src/sound.cpp
     src/error.cpp

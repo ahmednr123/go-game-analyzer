@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
         std::cerr << "Themes loading failed: " << SDL_GetError() << "\n";
     }
 
+    bool isFullscreen = false;
     bool isRunning = true;
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -107,20 +108,35 @@ int main(int argc, char **argv) {
                 continue;
             }
 
-            SDL_KeyboardEvent key_event = event.key;
-            if (key_event.mod & SDL_KMOD_SHIFT) {
-                if (key_event.scancode == SDL_SCANCODE_1) {
-                    delete board;
-                    board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
-                    board->setupTextEngine(text_engine, font);
-                } else if (key_event.scancode == SDL_SCANCODE_2) {
-                    delete board;
-                    board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
-                    board->setupTextEngine(text_engine, font);
-                } else if (key_event.scancode == SDL_SCANCODE_3) {
-                    delete board;
-                    board = new GoBoard(renderer, w, h, GoBoardSize::_19x19);
-                    board->setupTextEngine(text_engine, font);
+            if (event.type == SDL_EVENT_KEY_UP) {
+                SDL_KeyboardEvent key_event = event.key;
+                if (key_event.mod & SDL_KMOD_SHIFT) {
+                    if (key_event.scancode == SDL_SCANCODE_1) {
+                        delete board;
+                        board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
+                        board->setupTextEngine(text_engine, font);
+                    } else if (key_event.scancode == SDL_SCANCODE_2) {
+                        delete board;
+                        board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
+                        board->setupTextEngine(text_engine, font);
+                    } else if (key_event.scancode == SDL_SCANCODE_3) {
+                        delete board;
+                        board = new GoBoard(renderer, w, h, GoBoardSize::_19x19);
+                        board->setupTextEngine(text_engine, font);
+                    }
+                } else if (key_event.scancode == SDL_SCANCODE_F) {
+                    isFullscreen = !isFullscreen;
+
+                    if (!SDL_SetWindowFullscreen(
+                            window,
+                            isFullscreen ?
+                                SDL_WINDOW_FULLSCREEN : 0
+                        )
+                    ) {
+                        isFullscreen = !isFullscreen;
+                        std::cerr << "Fullscreen toggle error: "
+                                  << SDL_GetError() << "\n";
+                    }
                 }
             }
 

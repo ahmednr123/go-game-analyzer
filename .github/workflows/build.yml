@@ -21,6 +21,7 @@ jobs:
 
       - name: Package Linux Raw
         run: |
+          cp ./settings.gpu.json ./assets/KataGo/config/settings.json
           mkdir build-raw
           cd build-raw
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_raw ..
@@ -34,6 +35,7 @@ jobs:
       - name: Package Linux + Katago CPU
         run: |
           mv ./katago-linux-cpu/katago ./assets/KataGo/katago
+          mv ./settings.cpu.json ./assets/KataGo/config/settings.json
           mkdir -p assets/KataGo/models
           mv *.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
@@ -49,6 +51,7 @@ jobs:
       - name: Package Linux + Katago GPU
         run: |
           mv ./katago-linux-gpu/katago ./assets/KataGo/katago
+          mv ./settings.gpu.json ./assets/KataGo/config/settings.json
           mkdir -p assets/KataGo/models
           #already moved by the previous execution
           #mv *.bin.gz ./assets/KataGo/models/
@@ -96,6 +99,7 @@ jobs:
 
       - name: Package Windows Raw
         run: |
+          cp ./settings.gpu.json ./assets/KataGo/config/settings.json
           mkdir build-raw
           cd build-raw
           cmake -DBUILD_TYPE=windows -DCONFIG_TYPE=windows_raw -DCMAKE_TOOLCHAIN_FILE=../scripts/mingw-w64-toolchain.cmake ..
@@ -110,6 +114,7 @@ jobs:
         run: |
           mv ./katago-windows-cpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-cpu/*.dll ./assets/KataGo
+          mv ./settings.cpu.json ./assets/KataGo/config/settings.json
           mkdir -p assets/KataGo/models
           mv *.bin.gz ./assets/KataGo/models/
           mkdir build-cpu
@@ -126,6 +131,7 @@ jobs:
         run: |
           mv ./katago-windows-gpu/katago.exe ./assets/KataGo/katago.exe
           mv ./katago-windows-gpu/*.dll ./assets/KataGo
+          mv ./settings.gpu.json ./assets/KataGo/config/settings.json
           mkdir -p assets/KataGo/models
           #already moved by the previous execution
           #mv *.bin.gz ./assets/KataGo/models/
