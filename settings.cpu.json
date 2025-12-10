@@ -8,29 +8,29 @@
         "LEVEL_4": {
             "maxVisits": 10,
             "rootPolicyTemperature": 0.9,
-            "rootFpuReductionMax": 0.1,
+            "rootFpuReductionMax": 0.1
         },
         "LEVEL_3": {
             "maxVisits": 10,
             "rootPolicyTemperature": 0.6,
-            "rootFpuReductionMax": 0.25,
+            "rootFpuReductionMax": 0.25
         },
         "LEVEL_2": {
             "maxVisits": 20,
             "rootPolicyTemperature": 0.45,
-            "rootFpuReductionMax": 0.3,
+            "rootFpuReductionMax": 0.3
         },
         "LEVEL_1": {
             "maxVisits": 30,
             "rootPolicyTemperature": 0.3,
-            "rootFpuReductionMax": 0.5,
+            "rootFpuReductionMax": 0.5
         }
     },
 
     "evaluation": {
         "maxVisits": 20,
         "rootPolicyTemperature": 0.3,
-        "rootFpuReductionMax": 0.5,
+        "rootFpuReductionMax": 0.5
     }
 }
 
