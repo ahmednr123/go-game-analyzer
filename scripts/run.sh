@@ -1,0 +1,4 @@
+#!/bin/sh
+DIR="$(dirname "$0")"
+export LD_LIBRARY_PATH="$DIR:$LD_LIBRARY_PATH"
+exec "$DIR/go-game"

@@ -26,11 +26,14 @@ jobs:
           cd build-raw
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_raw ..
           cmake --build .
-          mkdir out
-          cp go-game out/
-          cp -P *.so* out/
-          cp -r assets out/
-          cp config.json out/
+          mkdir go-game-analyzer
+          cp go-game go-game-analyzer/
+          cp -P *.so* go-game-analyzer/
+          cp -r assets go-game-analyzer/
+          cp config.json go-game-analyzer/
+          cp ../scripts/run.sh go-game-analyzer/
+          chmod a+x out/run.sh
+          tar -czvf go-game-linux.tar.gz go-game-analyzer/
 
       - name: Package Linux + Katago CPU
         run: |
@@ -42,11 +45,14 @@ jobs:
           cd build-cpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
-          mkdir out
-          cp go-game out/
-          cp -P *.so* out/
-          cp -r assets out/
-          cp config.json out/
+          mkdir go-game-analyzer-cpu
+          cp go-game go-game-analyzer-cpu/
+          cp -P *.so* go-game-analyzer-cpu/
+          cp -r assets go-game-analyzer-cpu/
+          cp config.json go-game-analyzer-cpu/
+          cp ../scripts/run.sh go-game-analyzer-cpu/
+          chmod a+x out/run.sh
+          tar -czvf go-game-linux-with-katago-cpu.tar.gz go-game-analyzer-cpu/
 
       - name: Package Linux + Katago GPU
         run: |
@@ -59,26 +65,29 @@ jobs:
           cd build-gpu
           cmake -DBUILD_TYPE=linux -DCONFIG_TYPE=linux_with_katago ..
           cmake --build .
-          mkdir out
-          cp go-game out/
-          cp -P *.so* out/
-          cp -r assets out/
-          cp config.json out/
+          mkdir go-game-analyzer-gpu
+          cp go-game go-game-analyzer-gpu/
+          cp -P *.so* go-game-analyzer-gpu/
+          cp -r assets go-game-analyzer-gpu/
+          cp config.json go-game-analyzer-gpu/
+          cp ../scripts/run.sh go-game-analyzer-gpu/
+          chmod a+x out/run.sh
+          tar -czvf go-game-linux-with-katago-gpu.tar.gz go-game-analyzer-gpu/
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-linux
-          path: build-raw/out/*
+          path: build-raw/go-game-linux.tar.gz
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-linux-cpu
-          path: build-cpu/out/*
+          path: build-cpu/go-game-linux-with-katago-cpu.tar.gz
 
       - uses: actions/upload-artifact@v4
         with:
           name: go-game-linux-gpu
-          path: build-gpu/out/*
+          path: build-gpu/go-game-linux-with-katago-gpu.tar.gz
 
   # ============================
   # Windows (DLLs)
@@ -212,12 +221,7 @@ jobs:
 
       - name: Create archive files
         run: |
-          cd artifacts/go-game-linux
-          zip -r ../go-game-linux.zip .
-          cd ../go-game-linux-cpu
-          zip -r ../go-game-linux-with-katago-cpu.zip .
-          cd ../go-game-linux-gpu
-          zip -r ../go-game-linux-with-katago-gpu.zip .
+          ls -lah
           cd ../go-game-windows
           zip -r ../go-game-windows.zip .
           cd ../go-game-windows-cpu
@@ -225,7 +229,6 @@ jobs:
           cd ../go-game-windows-gpu
           zip -r ../go-game-windows-with-katago-gpu.zip .
           cd ..
-          ls -lah
           #cd ../go-game-macos
           #zip -r ../go-game-macos.zip .
 
@@ -235,9 +238,9 @@ jobs:
           token: ${{ secrets.TOKEN }}
           generate_release_notes: true
           files: |
-            artifacts/go-game-linux.zip
-            artifacts/go-game-linux-with-katago-cpu.zip
-            artifacts/go-game-linux-with-katago-gpu.zip
+            artifacts/go-game-linux.tar.gz
+            artifacts/go-game-linux-with-katago-cpu.tar.gz
+            artifacts/go-game-linux-with-katago-gpu.tar.gz
             artifacts/go-game-windows.zip
             artifacts/go-game-windows-with-katago-cpu.zip
             artifacts/go-game-windows-with-katago-gpu.zip
