@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
-    GoBoard* board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
+    GoBoard* board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
     board->setupTextEngine(text_engine, font);
 
     while (isRunning) {
@@ -105,9 +105,9 @@ int main(int argc, char **argv) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 isRunning = false;
-                continue;
             }
 
+            bool is_reset = false;
             if (event.type == SDL_EVENT_KEY_UP) {
                 SDL_KeyboardEvent key_event = event.key;
                 if (key_event.mod & SDL_KMOD_SHIFT) {
@@ -115,14 +115,17 @@ int main(int argc, char **argv) {
                         delete board;
                         board = new GoBoard(renderer, w, h, GoBoardSize::_9x9);
                         board->setupTextEngine(text_engine, font);
+                        is_reset = true;
                     } else if (key_event.scancode == SDL_SCANCODE_2) {
                         delete board;
                         board = new GoBoard(renderer, w, h, GoBoardSize::_13x13);
                         board->setupTextEngine(text_engine, font);
+                        is_reset = true;
                     } else if (key_event.scancode == SDL_SCANCODE_3) {
                         delete board;
                         board = new GoBoard(renderer, w, h, GoBoardSize::_19x19);
                         board->setupTextEngine(text_engine, font);
+                        is_reset = true;
                     }
                 } else if (key_event.scancode == SDL_SCANCODE_F) {
                     isFullscreen = !isFullscreen;
@@ -140,7 +143,8 @@ int main(int argc, char **argv) {
                 }
             }
 
-            board->handleEvent(&event, errors);
+            if (!is_reset)
+                board->handleEvent(&event, errors);
         }
 
         int w, h;
